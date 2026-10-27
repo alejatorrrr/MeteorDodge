@@ -29,3 +29,31 @@ p { color: #a5b3cb; font-size: 14px; line-height: 1.7; }
 #record-message { color: #70f4db; margin: 8px 0; }
 #touch-hint { position: absolute; bottom: max(30px, env(safe-area-inset-bottom)); width: 100%; text-align: center; color: #839bbd; font-size: 9px; letter-spacing: 2px; pointer-events: none; opacity: 0; transition: opacity .3s; }
 @media (max-height: 600px) { .ship-mark { display: none; } h1 { font-size: 38px; margin: 10px 0; } .primary { margin-top: 8px; } .hint { margin-top: 12px; } #panel { padding-top: 105px; } }
+/* Combat HUD and touch-friendly upgrade selection. */
+#hud { top: max(14px, env(safe-area-inset-top)); gap: 20px; }
+#hud strong { font-size: 21px; }
+#vitals { position: absolute; top: max(73px, calc(env(safe-area-inset-top) + 60px)); left: 24px; right: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; pointer-events: none; }
+.vital { font-size: 9px; letter-spacing: 1px; color: #b0bed5; }
+.vital span { float: right; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.vital.xp { grid-column: 1 / -1; }
+progress { display: block; width: 100%; height: 7px; margin-top: 4px; border: 0; border-radius: 2px; overflow: hidden; background: #233048; }
+progress::-webkit-progress-bar { background: #233048; }
+.health progress::-webkit-progress-value { background: #f47b85; }
+.shield progress::-webkit-progress-value { background: #65cfff; }
+.xp progress::-webkit-progress-value { background: #ba88ff; }
+.health progress::-moz-progress-bar { background: #f47b85; }
+.shield progress::-moz-progress-bar { background: #65cfff; }
+.xp progress::-moz-progress-bar { background: #ba88ff; }
+#level { top: 133px; font-size: 8px; }
+#ship-preview { width: 69px; height: 81px; margin: 18px auto 8px; image-rendering: pixelated; }
+#upgrade-panel { position: absolute; inset: 0; padding: 155px 20px 20px; display: flex; align-items: center; justify-content: center; background: #060a19ef; overflow-y: auto; }
+.upgrade-card { width: 100%; max-width: 360px; text-align: center; }
+h2 { font-size: 35px; letter-spacing: -1px; margin: 10px 0; color: #cda7ff; }
+.upgrade-card > p { margin: 8px 0 20px; font-size: 12px; }
+.upgrade-option { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 78px; text-align: left; margin: 10px 0; padding: 14px; border: 1px solid #546083; border-radius: 12px; background: #141e35; color: #f0f5ff; }
+.upgrade-option:active { border-color: #cda7ff; background: #293354; }
+.upgrade-option > span:nth-child(2) { flex: 1; }
+.upgrade-option strong { font-size: 13px; letter-spacing: 1px; }
+.upgrade-option small { display: block; color: #a9b8d0; font-size: 11px; margin-top: 5px; line-height: 1.4; }
+.upgrade-icon { color: #cda7ff; font-size: 29px; width: 25px; text-align: center; font-weight: 900; }
+@media (max-height: 650px) { #ship-preview { display: none; } #upgrade-panel { align-items: flex-start; } .upgrade-option { min-height: 62px; margin: 6px 0; padding: 10px; } h2 { font-size: 27px; } .upgrade-card > p { margin: 6px 0 10px; } }

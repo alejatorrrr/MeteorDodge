@@ -8,6 +8,7 @@
   <title>Meteor Dodge</title>
   <link rel="stylesheet" href="style.css">
   <script src="engine.js" defer></script>
+  <script src="sprites.js" defer></script>
   <script src="game.js" defer></script>
 </head>
 <body>
@@ -18,16 +19,32 @@
       <div class="record"><span class="label">RÉCORD</span><strong id="best">0000</strong></div>
       <button id="pause" class="icon-button" aria-label="Pausar partida" hidden>Ⅱ</button>
     </div>
+    <div id="vitals">
+      <label class="vital health">VIDA <span id="health-text">100 / 100</span><progress id="health-bar" max="100" value="100" aria-label="Vida"></progress></label>
+      <label class="vital shield">ESCUDO <span id="shield-text">30 / 60</span><progress id="shield-bar" max="60" value="30" aria-label="Escudo"></progress></label>
+      <label class="vital xp">XP · NIVEL <b id="pilot-level">1</b><span id="xp-text">0 / 12</span><progress id="xp-bar" max="12" value="0" aria-label="Experiencia"></progress></label>
+    </div>
     <div id="level">SECTOR <span id="sector">01</span></div>
     <section id="panel" role="dialog" aria-modal="true" aria-labelledby="title">
       <div class="card">
         <div class="eyebrow" id="eyebrow">UN PILOTO. INFINITOS METEORITOS.</div>
-        <div class="ship-mark" aria-hidden="true">▲</div>
+        <canvas id="ship-preview" width="92" height="108" aria-hidden="true"></canvas>
         <h1 id="title">METEOR<br><em>DODGE</em></h1>
-        <p id="message">Arrastra el dedo para pilotar.<br>Esquiva. Sobrevive. Supera tu récord.</p>
+        <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Destruye rocas, recoge XP y mejora tu nave.</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
         <button id="action" class="primary">DESPEGAR <span aria-hidden="true">↗</span></button>
         <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
+      </div>
+    </section>
+    <section id="upgrade-panel" role="dialog" aria-modal="true" aria-labelledby="upgrade-title" hidden>
+      <div class="upgrade-card">
+        <div class="eyebrow">EVOLUCIONA TU NAVE</div>
+        <h2 id="upgrade-title">NIVEL <span id="upgrade-level">2</span></h2>
+        <p>Elige una mejora para continuar</p>
+        <button class="upgrade-option" data-upgrade="rate"><span class="upgrade-icon">»</span><span><strong>CADENCIA</strong><small id="rate-description">Dispara más rápido</small></span><b>→</b></button>
+        <button class="upgrade-option" data-upgrade="damage"><span class="upgrade-icon">✦</span><span><strong>DAÑO</strong><small id="damage-description">+1 de daño por disparo</small></span><b>→</b></button>
+        <button class="upgrade-option" data-upgrade="health"><span class="upgrade-icon">+</span><span><strong>VIDA</strong><small>+25 de vida máxima y recupera 25</small></span><b>→</b></button>
+        <p class="hint">La partida está pausada mientras eliges.</p>
       </div>
     </section>
     <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>

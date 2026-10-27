@@ -4,13 +4,22 @@ Arcade vertical para Android, hecho con HTML5 Canvas y JavaScript dentro de un W
 
 ## Cómo jugar
 
-- Pulsa **DESPEGAR** y arrastra el dedo por la pantalla: la nave sigue el desplazamiento sin saltar debajo del dedo.
-- Esquiva los meteoritos. Ganas 10 puntos por segundo y 10 por meteorito superado.
-- Cada 12 segundos aumenta el sector y sube la dificultad.
-- Una colisión termina la partida. Puedes volver a jugar desde **GAME OVER**.
-- El récord se guarda localmente con `localStorage`. Borrar los datos o desinstalar la aplicación elimina el récord.
-- El botón de pausa, el botón Atrás y salir de la aplicación pausan la partida; pulsa **CONTINUAR** para retomarla.
-- En un navegador de escritorio también puedes usar flechas o WASD y la barra espaciadora para pausar.
+- Pulsa **DESPEGAR** y arrastra el dedo. La nave dispara automáticamente cada 0,38 segundos.
+- Rocas pequeñas, medianas y grandes: 2, 4 y 7 puntos de resistencia. Los impactos abren grietas; al destruirse explotan en fragmentos pixelados.
+- Cada roca destruida suelta XP morada (4, 8 o 12 puntos). La XP se acerca sola a la nave tras una breve animación.
+- Al subir de nivel, la partida se pausa para elegir **cadencia**, **daño (+1)** o **vida máxima (+25 y recupera 25)**. Las mejoras duran esa partida.
+- Vida inicial: 100. Escudo: 30 de 60. Un 22% de las rocas destruidas con disparos sueltan un objeto que recupera 20 de escudo al recogerlo.
+- Los impactos quitan 18, 28 o 40 puntos según el tamaño: primero escudo, después vida. Tras un golpe hay 1,15 segundos de invulnerabilidad.
+- Los sectores aumentan la dificultad cada 15 segundos; son independientes del nivel de experiencia.
+- Puntuación: 10 por segundo, 10 por roca esquivada y 30 por roca destruida con disparos.
+- El récord se guarda en este dispositivo. Borrar los datos o desinstalar la app elimina el récord.
+- Pausa con el botón de pantalla, Atrás o al salir de la app. En escritorio: flechas o WASD y espacio para pausar.
+
+Los sprites se dibujan localmente con píxeles originales inspirados en las referencias: nave blanca y roja con cabina azul y meteoritos con cráteres, variaciones y grietas progresivas. No se descarga ningún recurso durante el juego.
+
+## Versión 1.1
+
+Añade combate automático, XP, tres mejoras por nivel, vida y escudo. El código de versión Android sube a 2. La firma debug puede variar entre compilaciones; si Android no permite actualizar, será necesario desinstalar la anterior (se pierde su récord).
 
 ## Obtener el APK desde un móvil
 
@@ -59,7 +68,7 @@ Abre `http://localhost:8000`. La vista previa no sustituye la prueba del APK en 
 
 - `app/src/main/assets/`: interfaz, Canvas, simulación y controles.
 - `app/src/main/java/`: actividad Android y carga local segura de recursos mediante origen HTTPS interceptado. Las solicitudes no locales se bloquean.
-- `tests/`: pruebas de colisiones, límites, puntuación, estados y dificultad.
+- `tests/`: 15 pruebas de combate y progresión y una prueba de interfaz móvil con Playwright ejecutada en CI.
 - `.github/workflows/android.yml`: pruebas, compilación, Android Lint y publicación del APK como artefacto.
 
 El workflow necesita que GitHub Actions esté habilitado. Para subirlo mediante una integración o token de GitHub se necesitan permisos de escritura en **Contents** y **Workflows** para este repositorio. Nunca incluyas tokens en archivos del proyecto.
