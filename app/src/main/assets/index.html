@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#060a19">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'">
+  <title>Meteor Dodge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="engine.js" defer></script>
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main id="stage" aria-label="Meteor Dodge: juego de esquivar meteoritos">
+    <canvas id="game" aria-label="Arrastra el dedo para mover la nave"></canvas>
+    <div id="hud">
+      <div><span class="label">PUNTOS</span><strong id="score">0000</strong></div>
+      <div class="record"><span class="label">RÉCORD</span><strong id="best">0000</strong></div>
+      <button id="pause" class="icon-button" aria-label="Pausar partida" hidden>Ⅱ</button>
+    </div>
+    <div id="level">SECTOR <span id="sector">01</span></div>
+    <section id="panel" role="dialog" aria-modal="true" aria-labelledby="title">
+      <div class="card">
+        <div class="eyebrow" id="eyebrow">UN PILOTO. INFINITOS METEORITOS.</div>
+        <div class="ship-mark" aria-hidden="true">▲</div>
+        <h1 id="title">METEOR<br><em>DODGE</em></h1>
+        <p id="message">Arrastra el dedo para pilotar.<br>Esquiva. Sobrevive. Supera tu récord.</p>
+        <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
+        <button id="action" class="primary">DESPEGAR <span aria-hidden="true">↗</span></button>
+        <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
+      </div>
+    </section>
+    <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>
+  </main>
+</body>
+</html>
