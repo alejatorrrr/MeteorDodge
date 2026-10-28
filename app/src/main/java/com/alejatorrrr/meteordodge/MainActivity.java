@@ -44,7 +44,9 @@ public final class MainActivity extends Activity {
                         && path != null && path.matches("/assets/[a-zA-Z0-9._-]+")) {
                     String file = path.substring("/assets/".length());
                     String mime = file.endsWith(".js") ? "application/javascript"
-                            : file.endsWith(".css") ? "text/css" : "text/html";
+                            : file.endsWith(".css") ? "text/css"
+                            : file.endsWith(".ttf") ? "font/ttf"
+                            : file.endsWith(".jpg") ? "image/jpeg" : "text/html";
                     try {
                         return new WebResourceResponse(mime, "UTF-8", getAssets().open(file));
                     } catch (IOException ignored) {

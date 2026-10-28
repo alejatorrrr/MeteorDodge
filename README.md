@@ -27,6 +27,15 @@ Los sprites se dibujan localmente con píxeles originales inspirados en las refe
 - El jefe cubre todo el ancho: dispara mientras retrocedes y destrúyelo antes de que el borde rojo alcance tu nave. El contacto mata incluso con escudo o invulnerabilidad; el escudo demoledor no destruye jefes. Su vida se ajusta a la potencia de fuego frontal disponible y avanza lentamente para dejar margen de combate.
 - Código de versión Android: 3. La firma debug puede variar entre compilaciones; si Android no permite actualizar, desinstalar la anterior borra el récord.
 
+## Versión 1.3: identidad arcade
+
+- El icono Android usa la imagen de meteorito aportada por el usuario, también con variante adaptativa para Android 8 o superior.
+- El menú muestra el título de la referencia original; una fuente pixelada propia, Meteor Arcade, adapta el resto de la interfaz a ese estilo. Incluye acentos y signos españoles.
+- Botones con marco de neón cian, cifras con relieve, barras segmentadas por color, estrellas en cruz, planeta pixelado y meteoritos iluminados por el borde.
+- Imágenes y fuente se incluyen localmente y funcionan sin conexión. `tools/build_font.py` permite regenerar la fuente con fonttools; la compilación usa el TTF ya incluido.
+- El workflow comprueba la fuente, las imágenes, los controles y tres tamaños de pantalla y guarda capturas en **MeteorDodge-preview**.
+- Código de versión Android: 4.
+
 ## Obtener el APK desde un móvil
 
 1. Abre [GitHub Actions](https://github.com/alejatorrrr/MeteorDodge/actions/workflows/android.yml) con tu sesión de GitHub iniciada.

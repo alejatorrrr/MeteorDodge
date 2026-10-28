@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#060a19">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'">
   <title>Meteor Dodge</title>
   <link rel="stylesheet" href="style.css">
   <script src="engine.js" defer></script>
@@ -22,19 +22,20 @@
     <div id="vitals">
       <label class="vital health">VIDA <span id="health-text">100 / 100</span><progress id="health-bar" max="100" value="100" aria-label="Vida"></progress></label>
       <label class="vital shield">ESCUDO <span id="shield-text">30 / 60</span><progress id="shield-bar" max="60" value="30" aria-label="Escudo"></progress></label>
-      <label class="vital xp">XP · NIVEL <b id="pilot-level">1</b><span id="xp-text">0 / 12</span><progress id="xp-bar" max="12" value="0" aria-label="Experiencia"></progress></label>
+      <label class="vital xp">XP · NIVEL <b id="pilot-level">1</b><span id="xp-text">0 / 80</span><progress id="xp-bar" max="80" value="0" aria-label="Experiencia"></progress></label>
     </div>
     <div id="level">SECTOR <span id="sector">01</span> · <span id="sector-count">0 / 40</span> · <span id="biome">HIERRO</span></div>
     <div id="boss-hud" hidden><span>⚠ TITÁN · DESTRÚYELO ANTES DEL IMPACTO</span><progress id="boss-bar" max="100" value="100" aria-label="Vida del jefe"></progress></div>
     <div id="perk-status"></div>
     <section id="panel" role="dialog" aria-modal="true" aria-labelledby="title">
       <div class="card">
-        <div class="eyebrow" id="eyebrow">UN PILOTO. INFINITOS METEORITOS.</div>
+        <div class="eyebrow" id="eyebrow">ARCADE ESPACIAL · EDICIÓN PIXEL</div>
+        <img id="brand-badge" src="app-icon.jpg" width="52" height="52" alt="Meteorito de Meteor Dodge">
         <canvas id="ship-preview" width="92" height="108" aria-hidden="true"></canvas>
-        <h1 id="title">METEOR<br><em>DODGE</em></h1>
+        <h1 id="title" class="arcade-title"><span class="logo-text">METEOR DODGE</span><span class="logo-art" aria-hidden="true"><img src="title-reference.jpg" alt=""></span></h1>
         <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Cada 40 rocas: nuevo sector y ventaja especial.<br>Jefe cada 8 sectores. ¡Destrúyelo a tiempo!</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
-        <button id="action" class="primary">DESPEGAR <span aria-hidden="true">↗</span></button>
+        <button id="action" class="primary">JUGAR <span aria-hidden="true">↗</span></button>
         <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
       </div>
     </section>

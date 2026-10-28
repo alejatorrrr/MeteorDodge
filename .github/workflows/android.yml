@@ -28,6 +28,12 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test mobile game interface
         run: node tests/browser-smoke.cjs
+      - name: Upload visual previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeteorDodge-preview
+          path: /tmp/MeteorDodge-*.png
+          retention-days: 14
       - name: Set up Java
         uses: actions/setup-java@v4
         with:

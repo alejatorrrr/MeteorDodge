@@ -1,5 +1,5 @@
 const { chromium } = require('playwright');
-const fs = require('node:fs'); const http = require('node:http'); const path = require('node:path');
+const fs = require('node:fs'); const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.join(__dirname, '../app/src/main/assets');
 (async () => {
@@ -16,9 +16,13 @@ const root = path.join(__dirname, '../app/src/main/assets');
   await page.route('https://meteor.local/**', async route => {
     const pathname=new URL(route.request().url()).pathname;
     const file=path.join(root,pathname==='/'?'index.html':pathname);
-    await route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html'});
+    await route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':file.endsWith('.ttf')?'font/ttf':file.endsWith('.jpg')?'image/jpeg':'text/html'});
   });
   await page.goto('https://meteor.local/');
+  await page.evaluate(()=>document.fonts.ready);
+  assert.equal(await page.evaluate(()=>document.fonts.check('12px "Meteor Arcade"')),true);
+  assert.ok(await page.locator('#brand-badge').evaluate(img=>img.complete && img.naturalWidth>0));
+  assert.ok(await page.locator('.logo-art img').evaluate(img=>img.complete && img.naturalWidth>0));
   await page.locator('#action').click();
   await page.waitForTimeout(700);
   assert.ok(await page.evaluate(()=>__game.bullets.length>0));
@@ -61,6 +65,15 @@ const root = path.join(__dirname, '../app/src/main/assets');
   await page.reload();
   assert.equal(await page.locator('#best').textContent(),'1234');
   await page.screenshot({path:'/tmp/MeteorDodge-inicio.png'});
+  for (const size of [{width:320,height:568},{width:393,height:851},{width:560,height:900}]) {
+    await page.setViewportSize(size);
+    await page.evaluate(()=>document.fonts.ready);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const logo=await page.locator('.logo-art').boundingBox();
+    assert.ok(logo.x>=0 && logo.x+logo.width<=size.width);
+    await page.locator('#action').scrollIntoViewIfNeeded();
+    assert.ok((await page.locator('#action').boundingBox()).height>=44);
+  }
   assert.deepEqual(errors,[]);
   console.log('PASS: mobile launch, automatic fire, pause/resume, XP selection, damage upgrade, rock destruction, game over, restart, persistent record; no JS errors.');
  } finally {await browser.close();}

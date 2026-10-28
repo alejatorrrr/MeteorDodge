@@ -28,6 +28,7 @@
     if (game.state === 'playing') pause();
   }
   function hud() {
+    $('stage').dataset.screen = game.state;
     $('score').textContent = format(game.score);
     $('best').textContent = format(Math.max(best, game.score));
     $('sector').textContent = String(game.sector).padStart(2, '0');
@@ -67,7 +68,7 @@
     $('ship-preview').hidden = true;
     $('eyebrow').textContent = 'MISIÓN TERMINADA';
     $('title').textContent = 'GAME OVER';
-    $('message').textContent = 'Cada vuelo es una nueva oportunidad.';
+    $('message').textContent = 'FIN DE LA MISIÓN. TU PRÓXIMO VUELO TE ESPERA.';
     $('final-score').textContent = game.score;
     $('record-message').textContent = newRecord ? '¡NUEVO RÉCORD!' : 'Récord: ' + best;
     $('results').hidden = false;
@@ -213,10 +214,23 @@
     const glow = ctx.createRadialGradient(270, h * 0.3, 0, 270, h * 0.3, 340);
     glow.addColorStop(0, theme.glow); glow.addColorStop(1, theme.base);
     ctx.fillStyle = glow; ctx.fillRect(0, 0, 360, h);
+    // Distant pixel planet: cached once and tinted by sector, behind all hazards.
+    ctx.save(); ctx.globalAlpha = .5;
+    const planetY = game.state === 'ready' ? h * .26 : h * .25 + Math.sin(visualTime * .03) * 16;
+    ctx.drawImage(MeteorSprites.planet, 250, planetY, 190, 190);
+    ctx.globalAlpha = .10; ctx.fillStyle = theme.glow;
+    for (let i = 0; i < 10; i++) ctx.fillRect(24 + (i * 67) % 340, (i * 99 + visualTime * 4) % h, 30 + i * 5, 3);
+    ctx.restore();
     for (const s of stars) {
       const y = (s.y + visualTime * 20 * s.depth) % (h + 10);
       ctx.globalAlpha = 0.25 + s.depth * 0.5 + Math.sin(visualTime + s.phase) * .1;
-      ctx.fillStyle = '#b9d3ff'; ctx.fillRect(s.x, y, s.depth * 1.7, s.depth * 2.2);
+      const x = Math.floor(s.x / 2) * 2, sy = Math.floor(y / 2) * 2;
+      ctx.fillStyle = s.depth > .85 ? '#c9faff' : '#3979d9'; ctx.fillRect(x, sy, 2, 2);
+      if (s.depth > .94) {
+        ctx.fillStyle = '#1646a5'; ctx.fillRect(x - 5, sy, 12, 2); ctx.fillRect(x, sy - 5, 2, 12);
+        ctx.fillStyle = '#4ee7ff'; ctx.fillRect(x - 2, sy, 6, 2); ctx.fillRect(x, sy - 2, 2, 6);
+        ctx.fillStyle = '#f1fcff'; ctx.fillRect(x, sy, 2, 2);
+      }
     }
     ctx.globalAlpha = 1;
     if (game.laserActive) {

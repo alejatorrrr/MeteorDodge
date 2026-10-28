@@ -32,18 +32,18 @@
           mask[y][x] = Math.hypot(dx, dy) < 14 + Math.sin(a * (5 + variant) + variant) * 1.1 + Math.cos(a * 9) * .65;
         }
       }
-      const colors = ['#373a3d', '#55594f', '#717265', '#8d8c78', '#aaa48c'];
+      const colors = ['#343a45', '#60616a', '#8c8b82', '#b5ae96', '#f2e1b6'];
       for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
         if (!mask[y][x]) continue;
         const edge = !mask[y - 1]?.[x] || !mask[y + 1]?.[x] || !mask[y][x - 1] || !mask[y][x + 1];
         const noise = ((x * 17 + y * 31 + variant * 13) % 19) / 19;
         const light = Math.max(0, Math.min(4, Math.floor(4 - (x + y) / 16 + noise * 1.1)));
-        c.fillStyle = edge ? '#242a2c' : colors[light]; c.fillRect(x, y, 1, 1);
+        c.fillStyle = edge ? (x + y < 29 ? '#56c9ef' : '#151b33') : colors[light]; c.fillRect(x, y, 1, 1);
       }
       for (const [cx, cy, r] of [[10 + variant, 9, 4], [22, 18 - variant, 5], [10, 23, 3], [22, 6, 2]]) {
         for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
           if (x * x + y * y > r * r || !mask[cy + y]?.[cx + x]) continue;
-          c.fillStyle = y > r - 2 ? '#aaa18a' : y < -r + 2 ? '#33372f' : '#4b4c40';
+          c.fillStyle = y > r - 2 ? '#e9d8b5' : y < -r + 2 ? '#252a3a' : '#42464a';
           c.fillRect(cx + x, cy + y, 1, 1);
         }
       }
@@ -67,7 +67,7 @@
     }
   }
   const themes = [
-    { name: 'CINTURÓN DE HIERRO', glow: '#202b43', base: '#060a19', tint: [1, 1, 1], rock: '#65665b' },
+    { name: 'CINTURÓN DE HIERRO', glow: '#0c1e4a', base: '#020615', tint: [1, 1, 1], rock: '#65665b' },
     { name: 'BRASAS', glow: '#4b231f', base: '#160c12', tint: [1.45, .65, .48], rock: '#99513f' },
     { name: 'GLACIAR', glow: '#183d59', base: '#060e1b', tint: [.65, 1.18, 1.65], rock: '#527b99' },
     { name: 'ESPORAS', glow: '#24442b', base: '#07130f', tint: [.8, 1.4, .65], rock: '#608742' },
@@ -90,5 +90,16 @@
     }
     return canvas;
   })));
-  window.MeteorSprites = { ship, rocks, themes, themedRocks };
+  const planet = document.createElement('canvas'); planet.width = planet.height = 96;
+  const pc = planet.getContext('2d');
+  for (let y = 0; y < 96; y++) for (let x = 0; x < 96; x++) {
+    const dx = x - 48, dy = y - 48, distance = Math.hypot(dx, dy);
+    if (distance > 46) continue;
+    const rim = distance > 43;
+    const stripe = Math.sin(y * .28 + x * .13) + Math.cos(x * .26 - y * .09);
+    const light = Math.max(0, Math.min(4, Math.floor(3.1 - (x + y) / 55 + stripe * .7)));
+    pc.fillStyle = rim && x + y < 100 ? '#30d6ee' : ['#060c28', '#111f58', '#1d3894', '#265bb6', '#3c94da'][light];
+    pc.fillRect(x, y, 1, 1);
+  }
+  window.MeteorSprites = { ship, rocks, themes, themedRocks, planet };
 })();
