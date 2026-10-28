@@ -109,3 +109,7 @@ Meteoros rápidos con rebotes laterales y polvo estelar, pequeños con velocidad
 ## Versión 1.8
 
 Inicio con 0/20 de escudo. Botín de escudo al 10 % (antes 22 %). Nueva ventaja Capacidad de escudo (+20 máximo, sin recarga); Reactor regenera sin ampliar capacidad. Impactos: pequeños 9 sin escudo o 21 con escudo, medianos 32, grandes 46. Pequeños: 42 % de apariciones normales. Meteoros sorpresa aproximadamente un 10 % más rápidos. Jefes escalados por daño y armamento, con margen según inversión en daño/cadencia; la primera batalla exige al menos dos elecciones ofensivas con el cañón básico, retirándose hasta el fondo. Los sistemas de armas especiales siguen aportando sus efectos.
+
+## Versión 1.9
+
+Movimiento base reducido un 14 % aproximadamente (táctil 550, teclado 250). Impactos: pequeños 11 sin escudo/24 con escudo, medianos 36, grandes 52. Escudos al 8 % y 48 % de meteoros pequeños. Jefes tras completar los sectores 6, 12, 18…; disparan un proyectil dirigido de 14 de daño cada 4,5–5,5 s, con trayectoria fija, pausa y limpieza al derrotarlos. Desbloqueos Estelar/Fulgor/Tridente/Tempestad en 10.000/15.000/20.000/25.000 puntos de una partida.

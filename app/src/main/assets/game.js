@@ -333,6 +333,11 @@
       if (m.flash > 0) { ctx.globalAlpha = .5; ctx.fillStyle = '#fff3bb'; ctx.fillRect(-5, -5, 10, 10); }
       ctx.restore();
     }
+    for(const b of game.enemyBullets) {
+      ctx.fillStyle='#8e2549';ctx.fillRect(Math.round(b.x)-7,Math.round(b.y)-7,14,14);
+      ctx.fillStyle='#ff7657';ctx.fillRect(Math.round(b.x)-4,Math.round(b.y)-5,8,10);
+      ctx.fillStyle='#fff3ac';ctx.fillRect(Math.round(b.x)-2,Math.round(b.y)-3,4,6);
+    }
     for (const p of game.pickups) {
       ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y));
       if (p.type === 'xp') {
@@ -371,7 +376,7 @@
     if (game.state === 'playing') {
       const x = Number(keys.has('arrowright') || keys.has('d')) - Number(keys.has('arrowleft') || keys.has('a'));
       const y = Number(keys.has('arrowdown') || keys.has('s')) - Number(keys.has('arrowup') || keys.has('w'));
-      if (x || y) game.move(game.target.x + x * (290 + game.parts.engine * 45) * dt, game.target.y + y * (290 + game.parts.engine * 45) * dt);
+      if (x || y) game.move(game.target.x + x * (250 + game.parts.engine * 45) * dt, game.target.y + y * (250 + game.parts.engine * 45) * dt);
       game.step(dt);
       effects();
       if (game.state === 'over' && previousState === 'playing') end();

@@ -23,10 +23,10 @@
   ];
   const SHIPS = [
     {id:'classic',name:'PIONERA',score:0,text:'La nave original. Sin ventaja inicial.'},
-    {id:'orbit',name:'ESTELAR',score:3000,text:'Una estrella orbital daña las rocas al tocarlas.'},
-    {id:'critical',name:'FULGOR',score:6000,text:'Sobrecarga de rango 1 desde el despegue.'},
-    {id:'diagonal',name:'TRIDENTE',score:10000,text:'Disparo diagonal de rango 1 desde el despegue.'},
-    {id:'burst',name:'TEMPESTAD',score:15000,text:'Superráfaga: cadencia triple durante 10 s. Recarga: 180 s.'}
+    {id:'orbit',name:'ESTELAR',score:10000,text:'Una estrella orbital daña las rocas al tocarlas.'},
+    {id:'critical',name:'FULGOR',score:15000,text:'Sobrecarga de rango 1 desde el despegue.'},
+    {id:'diagonal',name:'TRIDENTE',score:20000,text:'Disparo diagonal de rango 1 desde el despegue.'},
+    {id:'burst',name:'TEMPESTAD',score:25000,text:'Superráfaga: cadencia triple durante 10 s. Recarga: 180 s.'}
   ];
   class Game {
     constructor(random = Math.random, height = 640) {
@@ -40,7 +40,7 @@
       this.time = 0; this.passed = 0; this.kills = 0; this.score = 0;
       this.sector = 1; this.sectorKills = 0; this.sectorGoal = 40;
       this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13;
-      this.boss = null; this.specialChoices = []; this.pendingSpecial = false;
+      this.boss = null; this.enemyBullets = []; this.specialChoices = []; this.pendingSpecial = false;
       this.perks = Object.fromEntries(PERKS.map(p => [p.id, 0]));
       this.burstTime = 0; this.burstCooldown = 0; this.orbitAngle = 0;
       this.orbit = {x:this.player.x+42,y:this.player.y};
@@ -75,8 +75,8 @@
     }
     spawn() {
       const roll = this.random();
-      // 42% small (previously 30%), 30% medium and 28% large.
-      const radius = roll < .42 ? 13 + roll / .42 * 7 : roll < .72 ? 20 + (roll - .42) / .30 * 8 : 28 + (roll - .72) / .28 * 8;
+      // 48% small, 27% medium and 25% large.
+      const radius = roll < .48 ? 13 + roll / .48 * 7 : roll < .75 ? 20 + (roll - .48) / .27 * 8 : 28 + (roll - .75) / .25 * 8;
       const size = radius < 20 ? 1 : radius < 28 ? 2 : 3;
       const hp = Math.ceil([0, 3, 6, 10][size] * (1 + (this.sector - 1) * 0.36 + (this.sector - 1) ** 2 * 0.012));
       const m = {
@@ -115,7 +115,7 @@
         this.pickups.push({ type: 'xp', x: m.x, y: m.y,
           vx: Math.cos(angle) * 45, vy: Math.sin(angle) * 40, value: 1, age: 0 });
       }
-      if (this.random() < 0.10) this.pickups.push({ type: 'shield', x: m.x,
+      if (this.random() < 0.08) this.pickups.push({ type: 'shield', x: m.x,
         y: m.y, vx: 0, vy: 35, value: 20, age: 0 });
     }
     hurt(amount) {
@@ -154,7 +154,7 @@
       if (this.workshopDue) {
         this.workshop = true; this.state = 'special'; this.specialChoices = ['cannon', 'armor', 'engine']; return;
       }
-      if (this.pendingSpecial || (this.sectorKills >= this.sectorGoal && this.sector % 8 !== 0)) {
+      if (this.pendingSpecial || (this.sectorKills >= this.sectorGoal && this.sector % 6 !== 0)) {
         this.pendingSpecial = true;
         const pool = PERKS.slice(); this.specialChoices = [];
         for (let i = 0; i < 3; i++) this.specialChoices.push(pool.splice(Math.min(pool.length - 1, Math.floor(this.random() * pool.length)), 1)[0].id);
@@ -176,7 +176,7 @@
       this.perks[id]++;
       if (id === 'capacity') this.maxShield += 20;
       this.sector++; this.sectorKills = 0; this.pendingSpecial = false;
-      this.specialChoices = []; this.boss = null; this.meteors = []; this.bullets = [];
+      this.specialChoices = []; this.boss = null; this.enemyBullets = []; this.meteors = []; this.bullets = [];
       this.weaponTime = 0; this.spawnClock = 1; this.state = 'playing';
       this.checkProgress(); return true;
     }
@@ -191,16 +191,21 @@
       const preparation = 1 + Math.min(2, Math.max(0, investment - 1) * .16);
       const support = p.laser * 3 * 1.2 / 7 * .38;
       const hp = Math.ceil(this.damage * (volley + support) * 95
-        * (1 + Math.max(0, this.sector / 8 - 1) * .08) / preparation);
+        * (1 + Math.max(0, this.sector / 6 - 1) * .08) / preparation);
       this.boss = { x: 180, y: -90, width: 420, height: 180,
-        hp, maxHp: hp, speed: Math.max(5, (this.height - 45) / 32), flash: 0 };
+        hp, maxHp: hp, shotClock: 3, speed: Math.max(5, (this.height - 45) / 32), flash: 0 };
       this.events.push({ type: 'boss-warning', x: 180, y: 200 });
+    }
+    fireBoss() {
+      const x=40+this.random()*280,y=this.boss.y+96;
+      const dx=this.player.x-x,dy=this.player.y-y,d=Math.hypot(dx,dy)||1;
+      this.enemyBullets.push({x,y,vx:dx/d*185,vy:dy/d*185});
     }
     damageBoss(amount) {
       if (!this.boss || this.boss.dead) return;
       this.boss.hp = Math.max(0, this.boss.hp - amount); this.boss.flash = .08;
       if (this.boss.hp === 0) {
-        this.boss.dead = true; this.kills++; this.pendingSpecial = true; this.workshopDue = true;
+        this.boss.dead = true; this.enemyBullets = []; this.kills++; this.pendingSpecial = true; this.workshopDue = true;
         this.events.push({ type: 'explode', x: 180, y: this.boss.y + 60, size: 8, reward: true });
         this.shield = this.maxShield;
       }
@@ -231,7 +236,7 @@
       this.invulnerable = Math.max(0, this.invulnerable - dt);
       const px = this.player.x, py = this.player.y;
       const dx = this.target.x - px, dy = this.target.y - py;
-      const travel = Math.min(1, (640 + this.parts.engine * 90) * dt / (Math.hypot(dx, dy) || 1));
+      const travel = Math.min(1, (550 + this.parts.engine * 90) * dt / (Math.hypot(dx, dy) || 1));
       this.player.x += dx * travel; this.player.y += dy * travel;
       this.fireClock -= dt;
       if (this.fireClock <= 0) {
@@ -303,16 +308,23 @@
       }
       if (this.boss && !this.boss.dead) {
         this.boss.y += this.boss.speed * dt; this.boss.flash = Math.max(0, this.boss.flash - dt);
+        this.boss.shotClock -= dt;
+        if(this.boss.shotClock<=0) { this.fireBoss(); this.boss.shotClock=4.5+this.random(); }
         if (this.boss.y + 90 >= this.player.y - this.player.radius) {
           this.health = 0; this.shield = 0; this.state = 'over';
           this.events.push({ type: 'hurt', x: this.player.x, y: this.player.y, shield: false });
         }
       }
+      for(const b of this.enemyBullets) {
+        const ox=b.x,oy=b.y;b.x+=b.vx*dt;b.y+=b.vy*dt;
+        if(hit(ox-px,oy-py,b.x-this.player.x,b.y-this.player.y,this.player.radius+5)) {this.hurt(14);b.dead=true;}
+      }
+      this.enemyBullets=this.enemyBullets.filter(b=>!b.dead && b.x>-20 && b.x<380 && b.y>-20 && b.y<this.height+20);
       for (const m of this.meteors) {
         if (this.aegisActive && !m.dead && Math.hypot(m.x - this.player.x, m.y - this.player.y) <= m.radius + 40) { this.destroy(m); continue; }
         if (!m.dead && hit(m.oldX - px, m.oldY - py,
           m.x - this.player.x, m.y - this.player.y, this.player.radius + m.radius * 0.8)) {
-          if (this.hurt(m.size === 1 && this.shield === 0 ? 9 : [0, 21, 32, 46][m.size])) this.destroy(m, false);
+          if (this.hurt(m.size === 1 && this.shield === 0 ? 11 : [0, 24, 36, 52][m.size])) this.destroy(m, false);
           if (this.state === 'over') break;
         }
       }

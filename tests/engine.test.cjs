@@ -52,7 +52,7 @@ test('shield absorbs damage first, overflow reaches health and invulnerability p
 });
 test('rock impact hurts and explodes without granting XP or kill rewards', () => {
   const g = make(); rock(g, { y: g.player.y, size: 3 }); g.step(.05);
-  assert.equal(g.shield, 0); assert.equal(g.health, 54);
+  assert.equal(g.shield, 0); assert.equal(g.health, 48);
   assert.equal(g.meteors.length, 0); assert.equal(g.pickups.length, 0); assert.equal(g.kills, 0);
 });
 test('XP homes toward the ship, is collected and pauses for a level choice', () => {
@@ -133,13 +133,13 @@ test('special-choice pause freezes weapon and boss timers', () => {
   const time = g.time, clock = g.weaponTime; g.step(.05);
   assert.equal(g.time, time); assert.equal(g.weaponTime, clock);
 });
-test('sector eight requires a boss victory before the special reward', () => {
-  const g = make(); g.sector = 8; g.sectorKills = 40; g.checkProgress();
+test('sector six requires a boss victory before the special reward', () => {
+  const g = make(); g.sector = 6; g.sectorKills = 40; g.checkProgress();
   assert.equal(g.state, 'playing'); assert.ok(g.boss); assert.equal(g.meteors.length, 0);
   const b = g.boss; g.checkProgress(); assert.equal(g.boss, b);
   assert.equal(g.chooseSpecial('laser'), false);
   g.damageBoss(b.hp); g.checkProgress(); assert.equal(g.state, 'special');
-  assert.equal(g.workshop, true); g.chooseSpecial('cannon'); assert.equal(g.damage, 3); g.chooseSpecial(g.specialChoices[0]); assert.equal(g.sector, 9); assert.equal(g.boss, null);
+  assert.equal(g.workshop, true); g.chooseSpecial('cannon'); assert.equal(g.damage, 3); g.chooseSpecial(g.specialChoices[0]); assert.equal(g.sector, 7); assert.equal(g.boss, null);
 });
 test('boss spans every x position and kills through shields and invulnerability', () => {
   for (const x of [26, 180, 334]) {
@@ -204,7 +204,7 @@ test('first boss defeats underprepared basic ships, but two offensive upgrades a
     for(const choices of [[],['rate'],['damage'],['rate','rate'],['damage','damage'],['rate','damage']]) {
       const g=new Game(()=>.5,height);g.start();
       for(const choice of choices){g.state='upgrade';g.chooseUpgrade(choice);}
-      g.player.y=height-38;g.target={...g.player};g.sector=8;g.sectorKills=40;g.spawnBoss();
+      g.player.y=height-38;g.target={...g.player};g.sector=6;g.sectorKills=40;g.spawnBoss();
       for(let i=0;i<900 && g.state==='playing';i++)g.step(.05);
       assert.equal(Boolean(g.boss.dead),choices.length>=2,`height ${height}, upgrades ${choices}`);
       if(choices.length<2)assert.equal(g.state,'over');
@@ -217,17 +217,17 @@ test('shield starts empty and capacity is a selectable sector reward without a f
  assert.equal(g.maxShield,40);assert.equal(g.shield,0);assert.equal(g.perks.capacity,1);
  g.state='special';g.specialChoices=['reactor'];g.chooseSpecial('reactor');assert.equal(g.maxShield,40);
 });
-test('shield loot probability is ten percent and small meteor frequency is 42 percent',()=>{
+test('shield loot probability is eight percent and small meteor frequency is 48 percent',()=>{
  let drops=0,small=0;
  for(let i=0;i<100;i++){
   const g=make();g.random=()=>(i+.5)/100;const m=g.spawn();if(m.size===1)small++;
   g.destroy(m);drops+=g.pickups.filter(p=>p.type==='shield').length;
  }
- assert.equal(drops,10);assert.equal(small,42);
+ assert.equal(drops,8);assert.equal(small,48);
 });
 
 test('small rocks deal reduced health damage only when shields are empty', () => {
- for(const [shield,health] of [[0,91],[30,100],[5,84]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
+ for(const [shield,health] of [[0,89],[30,100],[5,81]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
 });
 test('rush meteors arrive without warning, faster, and pause freezes their timer', () => {
  const g=make();g.rushClock=.1;g.pause();g.step(.05);assert.equal(g.rushClock,.1);
@@ -254,7 +254,7 @@ test('rush meteors bounce on either side, emit dust and leave only at the bottom
 });
 
 test('boss parts install once, repair and retain stats across sectors', () => {
- const g=make();g.sector=8;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
+ const g=make();g.sector=6;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
  assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,50);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
  g.chooseSpecial(g.specialChoices[0]);assert.equal(g.parts.armor,1);g.start();assert.equal(g.parts.armor,0);
 });
@@ -280,4 +280,20 @@ test('orbital star damages nearby rocks without hurting distant rocks',()=>{
 test('late sector rock durability grows faster and small meteor speeds vary',()=>{
  const g=make();g.random=()=>.1;const early=g.spawn();g.sector=20;const late=g.spawn();assert.ok(late.hp>early.hp*10);
  g.sector=1;const speeds=new Set();for(let i=0;i<10;i++){let n=0;g.random=()=>++n===1?.1:i/10;speeds.add(g.spawn().speed);}assert.ok(speeds.size>5);
+});
+
+test('boss volleys aim once, pause safely, hit shields first and clear on victory',()=>{
+ const g=make();g.sector=6;g.spawnBoss();g.boss.shotClock=0;g.step(.05);
+ assert.equal(g.enemyBullets.length,1);const b=g.enemyBullets[0];const before={...b};
+ g.pause();g.step(.05);assert.deepEqual(b,before);g.resume();
+ g.shield=20;Object.assign(b,{x:g.player.x,y:g.player.y+8,vx:0,vy:-400});g.step(.05);
+ assert.equal(g.shield,6);assert.equal(g.health,100);assert.equal(g.enemyBullets.length,0);
+ g.fireBoss();g.damageBoss(g.boss.hp);assert.equal(g.enemyBullets.length,0);
+});
+test('bosses guard each full six-sector cycle',()=>{
+ for(const sector of [5,6,7,12,18]) {const g=make();g.sector=sector;g.sectorKills=40;g.checkProgress();assert.equal(Boolean(g.boss),sector%6===0);}
+});
+test('fleet thresholds begin at ten thousand and movement is slower',()=>{
+ const {SHIPS}=require('../app/src/main/assets/engine.js');assert.deepEqual(SHIPS.map(s=>s.score),[0,10000,15000,20000,25000]);
+ const g=make();g.move(334,g.player.y);g.step(.05);assert.equal(g.player.x,207.5);
 });
