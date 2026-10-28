@@ -17,9 +17,18 @@
       button.disabled=ship.score>unlockBest; button.setAttribute('aria-pressed',String(ship.id===selectedShip));
       const preview=document.createElement('canvas'); preview.width=46;preview.height=54;preview.className='fleet-preview'; preview.setAttribute('aria-hidden','true');
       const c=preview.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(MeteorSprites.ships[ship.id],0,0,46,54);
-      const label=document.createElement('span');label.textContent=ship.name+' · '+(button.disabled?ship.score+' PUNTOS':ship.id===selectedShip?'SELECCIONADA':'ELEGIR');
+      const visual=document.createElement('span');visual.className='fleet-visual fleet-'+ship.id;
+      if(button.disabled) {
+        c.globalCompositeOperation='source-in';c.fillStyle='#000';c.fillRect(0,0,46,54);c.globalCompositeOperation='source-over';
+        c.fillStyle='#7393b8';c.fillRect(17,20,12,3);c.fillRect(15,23,4,8);c.fillRect(27,23,4,8);
+        c.fillStyle='#ffce69';c.fillRect(14,29,18,14);c.fillStyle='#fff0b5';c.fillRect(16,30,14,2);
+        c.fillStyle='#352438';c.fillRect(22,34,3,6);visual.classList.add('locked');
+        visual.append(preview);
+      }
+      const label=document.createElement('span');label.textContent=ship.name;
+      const status=document.createElement('b');status.className='fleet-status';status.textContent=button.disabled?ship.score.toLocaleString('es-ES')+' PUNTOS':ship.id===selectedShip?'EQUIPADA':'SELECCIONAR';label.append(status);
       const desc=document.createElement('small');desc.textContent=ship.text;
-      label.append(desc);button.append(preview,label);
+      label.append(desc);button.append(visual,label);
       button.addEventListener('click',()=>{selectedShip=ship.id;try{localStorage.setItem('meteor-ship',selectedShip);}catch(_){}shipSelection();});
       $('ship-options').append(button);
     }
@@ -82,6 +91,7 @@
     $('message').textContent = 'Tu nave te espera. Continúa cuando quieras.';
     $('ship-preview').hidden = true;
     $('results').hidden = true;
+    $('abandon').hidden = false;
     $('action').textContent = 'CONTINUAR ↗';
     $('hint').textContent = 'La partida se pausa al salir de la aplicación.';
     $('panel').hidden = false;
@@ -100,6 +110,7 @@
     $('final-score').textContent = game.score;
     $('record-message').textContent = newRecord ? '¡NUEVO RÉCORD!' : 'Récord: ' + best;
     $('results').hidden = false;
+    $('abandon').hidden = true;
     $('action').textContent = 'REINTENTAR';
     $('main-menu').hidden = false;
     $('hint').textContent = storageAvailable ? 'Tu récord se guarda en este dispositivo.' : 'El almacenamiento no está disponible: récord solo en esta sesión.';
@@ -117,6 +128,7 @@
     $('upgrade-level').textContent = game.level;
     const nextInterval = 0.14 + 0.24 * Math.pow(0.88, game.upgrades.rate + 1);
     $('rate-description').textContent = (1 / game.fireInterval).toFixed(1) + ' → ' + (1 / nextInterval).toFixed(1) + ' disparos / s';
+    $('health-description').textContent = 'VIDA MÁX. ' + game.maxHealth + ' → ' + (game.maxHealth+25) + ' · CURA 25';
     $('damage-description').textContent = game.damage + ' → ' + (game.damage + 1) + ' de daño por disparo';
     for (const button of document.querySelectorAll('[data-upgrade]')) {
       const rank = game.upgrades[button.dataset.upgrade];
@@ -160,7 +172,14 @@
     const rank = document.createElement('small'); rank.className = 'attribute-rank';
     button.children[1].append(meter, rank);
   });
+  $('abandon').addEventListener('click', () => {
+    if(game.state!=='paused') return;
+    best=Math.max(best,game.score);unlockBest=Math.max(unlockBest,game.score);
+    try { localStorage.setItem('meteor-dodge-best',String(best));localStorage.setItem('meteor-unlock-best',String(unlockBest)); } catch(_) { storageAvailable=false; }
+    $('main-menu').click();
+  });
   $('main-menu').addEventListener('click', () => {
+    $('abandon').hidden=true;
     game.reset(); game.state = 'ready'; previousState = 'ready'; release(); particles=[]; rings=[];
     $('title').textContent = 'METEOR DODGE'; $('eyebrow').textContent = 'ARCADE ESPACIAL';
     $('message').textContent = 'Arrastra para pilotar. Tu nave dispara sola. Cada 40 rocas, un nuevo sector.';
@@ -181,6 +200,7 @@
   }));
   $('action').addEventListener('click', () => {
     $('fleet').hidden = true;
+    $('abandon').hidden=true;
     $('main-menu').hidden = true;
     if (game.state === 'paused') game.resume(); else game.start(selectedShip);
     previousState = 'playing'; lastTime = 0; particles = []; rings = []; hitFlash = 0; release();

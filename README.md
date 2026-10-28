@@ -113,3 +113,7 @@ Inicio con 0/20 de escudo. Botín de escudo al 10 % (antes 22 %). Nueva ventaja 
 ## Versión 1.9
 
 Movimiento base reducido un 14 % aproximadamente (táctil 550, teclado 250). Impactos: pequeños 11 sin escudo/24 con escudo, medianos 36, grandes 52. Escudos al 8 % y 48 % de meteoros pequeños. Jefes tras completar los sectores 6, 12, 18…; disparan un proyectil dirigido de 14 de daño cada 4,5–5,5 s, con trayectoria fija, pausa y limpieza al derrotarlos. Desbloqueos Estelar/Fulgor/Tridente/Tempestad en 10.000/15.000/20.000/25.000 puntos de una partida.
+
+## Versión 1.10
+
+Abandonar desde pausa guarda récord/desbloqueos y vuelve al menú. Texto ampliado; mejora de vida indica +25 al máximo y cura 25. Meteoros sorpresa: 90 % de escudo al destruirlos; normales 8 %. Impactos: 12 sin escudo para pequeños, 26/39/56 con daño normal por tamaño. Hangar inspirado en la referencia con retratos, naves detalladas en vuelo y siluetas negras con candados para bloqueadas. Propuesta de publicidad voluntaria en `docs/ANUNCIOS.md`; aún no hay anuncios ni SDK.

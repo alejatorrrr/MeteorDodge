@@ -144,3 +144,30 @@ h2 { font-weight: 400; font-size: 24px; line-height: 1.5; letter-spacing: -1px; 
 .ship-choice[aria-pressed='true'] { border: 2px solid #69e4ff; }
 .ship-choice:disabled { opacity: .45; }
 .fleet-preview { width: 46px; height: 54px; flex-shrink: 0; image-rendering: pixelated; }
+
+/* More readable copy while retaining compact instruments. */
+p { font-size: 10px; } .hint { font-size: 7px; } .eyebrow { font-size: 8px; }
+.upgrade-card > p { font-size: 9px; }
+#upgrade-panel .upgrade-option strong, #special-panel .upgrade-option strong { font-size: 9px; }
+.upgrade-option small, #special-panel .upgrade-option small { font-size: 8px; }
+.attribute-rank { font-size: 7px !important; }
+.vital { font-size: 8px; } #level { font-size: 7px; top: 91px; } #boss-hud { top: 118px; font-size: 7px; }
+#hud .label { font-size: 7px; } #hud strong { font-size: 17px; }
+#action { font-size: 12px; } .secondary { font-size: 11px; } #burst { font-size: 8px; }
+#abandon { color: #ffbcad; border-color: #ae5263; }
+#stage[data-screen='paused'] #panel { padding-top: 100px; }
+#fleet { background: #040a19; border: 1px solid #427ba5; padding: 0 8px 12px; }
+.fleet-banner { width: calc(100% + 16px); margin-left: -8px; aspect-ratio: 853 / 120; background: url('fleet-reference.jpg') center top / 100% auto; image-rendering: pixelated; }
+#fleet h2 { color: #ffe09b; font-size: 18px; }
+.ship-choice { padding: 0; gap: 10px; min-height: 125px; overflow: hidden; border: 2px solid #36588f; box-shadow: inset 0 0 0 3px #101a38; background: linear-gradient(100deg,#122442,#050a20); }
+.ship-choice > span:last-child { flex: 1; padding: 10px 8px 10px 0; min-width: 0; font-size: 11px; }
+.ship-choice small { font-size: 8px; line-height: 1.8; }
+.fleet-status { display: block; font-weight: 400; font-size: 7px; padding: 6px 0; color: #6be8ff; }
+.ship-choice:disabled { opacity: 1; color: #9eacc7; }
+.fleet-visual { display: flex; align-items: center; justify-content: center; align-self: stretch; width: 42%; flex-shrink: 0; background-image: url('fleet-reference.jpg'); background-size: auto 673.684%; background-position: left 20.183%; image-rendering: pixelated; }
+.fleet-orbit { background-position-y: 38.532%; } .fleet-critical { background-position-y: 57.339%; }
+.fleet-diagonal { background-position-y: 76.147%; } .fleet-burst { background-position-y: 94.495%; }
+.fleet-visual.locked { background: radial-gradient(#34486a,#111d34); }
+.fleet-preview { width: 80px; height: 94px; }
+@media(max-width:350px) { .vital {font-size:7px;} #level {font-size:6px;} .ship-choice > span:last-child {font-size:10px;} .ship-choice small {font-size:8px;} #hud strong {font-size:16px;} }
+.fleet-visual:not(.locked) { align-self: center; aspect-ratio: 2; background-size: 224.474% auto; }

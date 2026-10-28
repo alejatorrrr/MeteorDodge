@@ -23,11 +23,19 @@ const root = path.join(__dirname, '../app/src/main/assets');
   assert.equal(await page.evaluate(()=>document.fonts.check('12px "Meteor Arcade"')),true);
   assert.ok(await page.locator('#brand-badge').evaluate(img=>img.complete && img.naturalWidth>0));
   assert.ok(await page.locator('#scene-art img').evaluate(img=>img.complete && img.naturalWidth>0));
+  await page.locator('#fleet-toggle').click();
+  assert.equal(await page.locator('.fleet-visual.locked').count(),4);
+  await page.screenshot({path:'/tmp/MeteorDodge-bloqueadas.png'});
   await page.locator('#action').click();
   await page.waitForTimeout(700);
   assert.ok(await page.evaluate(()=>__game.bullets.length>0));
   await page.locator('#pause').click();
   assert.equal(await page.evaluate(()=>__game.state),'paused');
+  await page.evaluate(()=>{__game.score=123;});
+  await page.screenshot({path:'/tmp/MeteorDodge-pausa.png'});
+  await page.locator('#abandon').click();
+  assert.equal(await page.evaluate(()=>__game.state),'ready');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('meteor-dodge-best')),'123');
   await page.locator('#action').click();
   await page.evaluate(()=>{__game.meteors=[];__game.spawnClock=100;__game.addXp(80);});
   // Engine normally changes state inside step, so trigger the overlay via a collected pickup.
@@ -36,6 +44,12 @@ const root = path.join(__dirname, '../app/src/main/assets');
   assert.equal(await page.locator('.upgrade-option').count(),3);
   assert.equal(await page.locator('#upgrade-panel .pixel-icon').count(),3);
   assert.equal(await page.locator('.attribute-meter .next').count(),3);
+  for(const size of [{width:320,height:568},{width:393,height:851}]) {
+    await page.setViewportSize(size);await page.locator('[data-upgrade=health]').scrollIntoViewIfNeeded();
+    assert.ok((await page.locator('[data-upgrade=health]').boundingBox()).width<=size.width);
+    assert.ok(await page.evaluate(()=>document.querySelector('#upgrade-panel').scrollWidth<=innerWidth));
+  }
+  await page.locator('#upgrade-title').scrollIntoViewIfNeeded();
   await page.screenshot({path:'/tmp/MeteorDodge-upgrades.png'});
   await page.locator('[data-upgrade="damage"]').click();
   assert.equal(await page.evaluate(()=>__game.damage),2);

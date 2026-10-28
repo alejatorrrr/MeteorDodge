@@ -114,19 +114,46 @@
     pc.fillStyle = rim && x + y < 100 ? '#30d6ee' : ['#060c28', '#111f58', '#1d3894', '#265bb6', '#3c94da'][light];
     pc.fillRect(x, y, 1, 1);
   }
-  const ships={classic:ship};
-  const designs={
-    orbit:{color:'#a87cff',light:'#e4d1ff',points:[[11,0],[15,9],[22,5],[20,22],[14,19],[11,26],[8,19],[2,22],[0,5],[7,9]]},
-    critical:{color:'#ffaf35',light:'#fff0a6',points:[[11,0],[17,5],[16,13],[22,21],[22,25],[12,20],[0,25],[0,21],[6,13],[5,5]]},
-    diagonal:{color:'#36d5af',light:'#c0fff1',points:[[11,0],[14,14],[18,1],[22,4],[22,23],[15,20],[11,26],[7,20],[0,23],[0,4],[4,1],[8,14]]},
-    burst:{color:'#ee6aa5',light:'#ffd6f2',points:[[11,0],[16,8],[20,7],[22,14],[19,25],[14,23],[11,19],[8,23],[3,25],[0,14],[2,7],[6,8]]}
+  // Detailed top-view fleet, with separate silhouettes and metallic pixel panels.
+  const ships={};
+  const fleet={
+    classic:{paint:'#e64250',shade:'#841c36',light:'#ffb7b0',wing:26,nose:3,pods:21},
+    orbit:{paint:'#9561e8',shade:'#40265e',light:'#d9c2ff',wing:28,nose:5,pods:23},
+    critical:{paint:'#efa32e',shade:'#8b4d24',light:'#ffe1a2',wing:22,nose:2,pods:20},
+    diagonal:{paint:'#32cca9',shade:'#175b68',light:'#a3ffde',wing:29,nose:0,pods:25},
+    burst:{paint:'#ed5a9d',shade:'#712147',light:'#ffc3e2',wing:27,nose:4,pods:24}
   };
-  for(const [id,d] of Object.entries(designs)) {
-    const c=document.createElement('canvas');c.width=23;c.height=27;const x=c.getContext('2d');
-    x.fillStyle='#152440';x.beginPath();d.points.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();
-    x.strokeStyle=d.color;x.lineWidth=3;x.stroke();x.fillStyle=d.color;x.fillRect(8,9,7,12);
-    x.fillStyle=d.light;x.fillRect(10,4,3,13);x.fillStyle='#2497dc';x.fillRect(9,8,5,6);
-    x.fillStyle='#e8ffff';x.fillRect(10,8,2,3);x.fillStyle='#ffbf51';x.fillRect(5,22,3,4);x.fillRect(15,22,3,4);ships[id]=c;
+  for(const [id,d] of Object.entries(fleet)) {
+    const c=document.createElement('canvas');c.width=64;c.height=72;const x=c.getContext('2d');
+    const rect=(a,b,w,h,color)=>{x.fillStyle=color;x.fillRect(a,b,w,h);};
+    const poly=(points,color)=>{x.fillStyle=color;x.beginPath();points.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();};
+    for(const sign of [-1,1]) {
+      const p=pts=>pts.map(([a,b])=>[32+sign*a,b]);
+      poly(p([[7,21],[d.wing,39],[d.wing,48],[13,46],[8,61],[3,58]]),'#101725');
+      poly(p([[8,25],[d.wing-2,40],[d.wing-2,44],[12,42],[7,55],[5,52]]),d.paint);
+      poly(p([[9,26],[d.wing-2,40],[18,39],[8,32]]),'#d8e6ed');
+      poly(p([[12,43],[d.wing-2,44],[9,56],[7,55]]),d.shade);
+      const ex=32+sign*d.pods-4;
+      rect(ex,19,8,34,'#111b2b');rect(ex+1,21,6,29,d.paint);rect(ex+1,21,2,21,d.light);
+      rect(ex+2,23,4,8,'#cfdae0');rect(ex+2,37,4,9,'#24364b');rect(ex+3,38,2,5,'#48dcff');
+      rect(ex+1,52,6,5,'#ff973d');rect(ex+2,54,4,9,'#ffd77e');rect(ex+3,56,2,10,'#fff4d7');
+      if(id==='diagonal')poly(p([[d.wing-1,7],[d.wing,31],[20,32],[21,13]]),d.light);
+      if(id==='orbit' || id==='burst') {
+        poly(p([[d.wing,13],[d.wing+2,23],[d.wing+1,48],[d.wing-4,56],[d.wing-2,28]]),d.paint);
+        rect(32+sign*(d.wing-1)-1,24,2,19,d.light);
+      }
+      if(id==='critical'){rect(ex-1,27,10,17,'#444759');rect(ex,28,8,13,d.paint);rect(ex+2,30,4,3,d.light);}
+    }
+    poly([[32,d.nose],[38,11],[42,42],[40,61],[32,66],[24,61],[22,42],[26,11]],'#0e1728');
+    poly([[32,d.nose+3],[36,12],[39,42],[37,59],[32,62],[27,59],[25,42],[28,12]],'#abb9c9');
+    poly([[32,6],[32,58],[27,54],[26,40],[29,13]],'#e9eef0');
+    poly([[33,12],[37,25],[38,43],[33,56]],'#697f96');
+    rect(27,43,10,13,d.paint);rect(28,44,3,9,d.light);rect(32,46,4,8,d.shade);
+    poly([[32,14],[36,24],[36,34],[32,39],[28,34],[28,24]],'#11243b');
+    poly([[32,17],[34,25],[34,33],[31,35],[30,31],[30,23]],'#239bda');rect(30,22,2,9,'#b8f7ff');
+    rect(28,58,8,5,'#182233');rect(29,59,6,2,'#70ecff');
+    for(const y of [40,47,54]){rect(24,y,2,2,'#fff2c2');rect(38,y,2,2,'#526a80');}
+    ships[id]=c;
   }
   window.MeteorSprites = { ship, ships, rocks, themes, themedRocks, planet };
 })();

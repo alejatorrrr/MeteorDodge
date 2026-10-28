@@ -115,7 +115,7 @@
         this.pickups.push({ type: 'xp', x: m.x, y: m.y,
           vx: Math.cos(angle) * 45, vy: Math.sin(angle) * 40, value: 1, age: 0 });
       }
-      if (this.random() < 0.08) this.pickups.push({ type: 'shield', x: m.x,
+      if (this.random() < (m.rush ? .90 : .08)) this.pickups.push({ type: 'shield', x: m.x,
         y: m.y, vx: 0, vy: 35, value: 20, age: 0 });
     }
     hurt(amount) {
@@ -324,7 +324,7 @@
         if (this.aegisActive && !m.dead && Math.hypot(m.x - this.player.x, m.y - this.player.y) <= m.radius + 40) { this.destroy(m); continue; }
         if (!m.dead && hit(m.oldX - px, m.oldY - py,
           m.x - this.player.x, m.y - this.player.y, this.player.radius + m.radius * 0.8)) {
-          if (this.hurt(m.size === 1 && this.shield === 0 ? 11 : [0, 24, 36, 52][m.size])) this.destroy(m, false);
+          if (this.hurt(m.size === 1 && this.shield === 0 ? 12 : [0, 26, 39, 56][m.size])) this.destroy(m, false);
           if (this.state === 'over') break;
         }
       }

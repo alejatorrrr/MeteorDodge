@@ -52,7 +52,7 @@ test('shield absorbs damage first, overflow reaches health and invulnerability p
 });
 test('rock impact hurts and explodes without granting XP or kill rewards', () => {
   const g = make(); rock(g, { y: g.player.y, size: 3 }); g.step(.05);
-  assert.equal(g.shield, 0); assert.equal(g.health, 48);
+  assert.equal(g.shield, 0); assert.equal(g.health, 44);
   assert.equal(g.meteors.length, 0); assert.equal(g.pickups.length, 0); assert.equal(g.kills, 0);
 });
 test('XP homes toward the ship, is collected and pauses for a level choice', () => {
@@ -227,7 +227,7 @@ test('shield loot probability is eight percent and small meteor frequency is 48 
 });
 
 test('small rocks deal reduced health damage only when shields are empty', () => {
- for(const [shield,health] of [[0,89],[30,100],[5,81]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
+ for(const [shield,health] of [[0,88],[30,100],[5,79]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
 });
 test('rush meteors arrive without warning, faster, and pause freezes their timer', () => {
  const g=make();g.rushClock=.1;g.pause();g.step(.05);assert.equal(g.rushClock,.1);
@@ -296,4 +296,13 @@ test('bosses guard each full six-sector cycle',()=>{
 test('fleet thresholds begin at ten thousand and movement is slower',()=>{
  const {SHIPS}=require('../app/src/main/assets/engine.js');assert.deepEqual(SHIPS.map(s=>s.score),[0,10000,15000,20000,25000]);
  const g=make();g.move(334,g.player.y);g.step(.05);assert.equal(g.player.x,207.5);
+});
+
+test('destroyed surprise meteors drop shields 90 percent of the time, collisions never do',()=>{
+ let drops=0;for(let i=0;i<100;i++){const g=make();g.random=()=>(i+.5)/100;const m=g.spawnRush();g.destroy(m);drops+=g.pickups.filter(p=>p.type==='shield').length;}
+ assert.equal(drops,90);const g=make();g.random=()=>0;g.destroy(g.spawnRush(),false);assert.equal(g.pickups.length,0);
+});
+test('health choice raises the maximum and heals without exceeding it',()=>{
+ const g=make();g.health=40;g.state='upgrade';g.chooseUpgrade('health');assert.equal(g.maxHealth,125);assert.equal(g.health,65);
+ g.health=125;g.state='upgrade';g.chooseUpgrade('health');assert.equal(g.maxHealth,150);assert.equal(g.health,150);
 });

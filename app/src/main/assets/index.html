@@ -38,9 +38,10 @@
         <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Cada 40 rocas: nuevo sector y ventaja especial.<br>Jefe cada 6 sectores. ¡Destrúyelo a tiempo!</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
         <button id="action" class="primary">PULSA PARA DESPEGAR</button>
+        <button id="abandon" class="secondary" hidden>ABANDONAR PARTIDA</button>
         <button id="main-menu" class="secondary" hidden>MENÚ PRINCIPAL</button>
         <button id="fleet-toggle" class="secondary">NAVES · HANGAR</button>
-        <section id="fleet" hidden><h2>ELIGE TU NAVE</h2><p>Desbloqueos permanentes por puntuación en una partida.</p><div id="ship-options"></div></section>
+        <section id="fleet" hidden><div class="fleet-banner" aria-hidden="true"></div><h2>ELIGE TU NAVE</h2><p>Desbloqueos permanentes por puntuación en una partida.</p><div id="ship-options"></div></section>
         <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
       </div>
     </section>
@@ -51,7 +52,7 @@
         <p>Elige una mejora para continuar</p>
         <button class="upgrade-option" data-upgrade="rate"><span class="upgrade-icon">»</span><span><strong>VELOCIDAD DE ATAQUE</strong><small id="rate-description">Dispara más rápido</small></span><b>→</b></button>
         <button class="upgrade-option" data-upgrade="damage"><span class="upgrade-icon">✦</span><span><strong>DAÑO</strong><small id="damage-description">+1 de daño por disparo</small></span><b>→</b></button>
-        <button class="upgrade-option" data-upgrade="health"><span class="upgrade-icon">+</span><span><strong>VIDA</strong><small>+25 de vida máxima y recupera 25</small></span><b>→</b></button>
+        <button class="upgrade-option" data-upgrade="health"><span class="upgrade-icon">+</span><span><strong>VIDA Y CURACIÓN</strong><small id="health-description">+25 de vida máxima y recupera 25</small></span><b>→</b></button>
         <p class="hint">La partida está pausada mientras eliges.</p>
       </div>
     </section>
