@@ -20,10 +20,17 @@
     { id: 'reactor', name: 'REACTOR DE ESCUDO', text: '+20 de escudo máximo, recupera 20 y regenera 1 punto/s por rango.' },
     { id: 'critical', name: 'SOBRECARGA', text: 'Cada quinto disparo causa daño doble. Cada rango añade otro multiplicador.' }
   ];
+  const SHIPS = [
+    {id:'classic',name:'PIONERA',score:0,text:'La nave original. Sin ventaja inicial.'},
+    {id:'orbit',name:'ESTELAR',score:3000,text:'Una estrella orbital daña las rocas al tocarlas.'},
+    {id:'critical',name:'FULGOR',score:6000,text:'Sobrecarga de rango 1 desde el despegue.'},
+    {id:'diagonal',name:'TRIDENTE',score:10000,text:'Disparo diagonal de rango 1 desde el despegue.'},
+    {id:'burst',name:'TEMPESTAD',score:15000,text:'Superráfaga: cadencia triple durante 10 s. Recarga: 180 s.'}
+  ];
   class Game {
     constructor(random = Math.random, height = 640) {
       this.random = random; this.width = 360; this.height = height;
-      this.reset(); this.state = 'ready';
+      this.shipId = 'classic'; this.reset(); this.state = 'ready';
     }
     reset() {
       this.player = { x: 180, y: this.height - 100, radius: 13 };
@@ -34,6 +41,9 @@
       this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13;
       this.boss = null; this.specialChoices = []; this.pendingSpecial = false;
       this.perks = Object.fromEntries(PERKS.map(p => [p.id, 0]));
+      this.burstTime = 0; this.burstCooldown = 0; this.orbitAngle = 0;
+      this.orbit = {x:this.player.x+42,y:this.player.y};
+      if (['critical','diagonal'].includes(this.shipId)) this.perks[this.shipId] = 1;
       this.weaponTime = 0; this.laserActive = false; this.aegisActive = false;
       this.volleyCount = 0; this.regenClock = 0;
       this.level = 1; this.xp = 0; this.xpNext = 80;
@@ -42,7 +52,14 @@
       this.invulnerable = 0; this.spawnClock = 0.6;
       this.upgrades = { rate: 0, damage: 0, health: 0 };
     }
-    start() { this.reset(); this.state = 'playing'; }
+    start(shipId = this.shipId) {
+      this.shipId = SHIPS.some(s=>s.id===shipId) ? shipId : 'classic';
+      this.reset(); this.state = 'playing';
+    }
+    activateBurst() {
+      if(this.state !== 'playing' || this.shipId !== 'burst' || this.burstCooldown > 0) return false;
+      this.burstTime=10; this.burstCooldown=180; this.fireClock=0; return true;
+    }
     pause() { if (this.state === 'playing') this.state = 'paused'; }
     resume() { if (this.state === 'paused') this.state = 'playing'; }
     move(x, y) {
@@ -58,12 +75,12 @@
     spawn() {
       const radius = 13 + this.random() * 23;
       const size = radius < 20 ? 1 : radius < 28 ? 2 : 3;
-      const hp = Math.ceil([0, 3, 6, 10][size] * (1 + (this.sector - 1) * 0.28));
+      const hp = Math.ceil([0, 3, 6, 10][size] * (1 + (this.sector - 1) * 0.36 + (this.sector - 1) ** 2 * 0.012));
       const m = {
         x: radius + this.random() * (360 - 2 * radius), y: -radius - 4,
         radius, size, hp, maxHp: hp, flash: 0,
-        speed: (size === 1 ? 105 : 72) + Math.min(this.sector - 1, 24) * 9 + this.random() * 35,
-        drift: (this.random() - 0.5) * 22,
+        speed: (size === 1 ? 115 + this.random() * 80 : 72) + Math.min(this.sector - 1, 24) * 9 + this.random() * 35,
+        drift: (this.random() - 0.5) * (size === 1 ? 75 : 22),
         angle: this.random() * Math.PI * 2, spin: (this.random() - 0.5) * 0.7,
         variant: (Math.floor(this.random() * 3) + this.sector - 1) % 3
       };
@@ -196,6 +213,7 @@
     step(seconds) {
       if (this.state !== 'playing' || !Number.isFinite(seconds) || seconds <= 0) return;
       const dt = Math.min(seconds, 0.05);
+      this.burstTime = Math.max(0, this.burstTime-dt); this.burstCooldown = Math.max(0, this.burstCooldown-dt);
       this.time += dt; this.weaponTime += dt;
       this.laserActive = this.perks.laser > 0 && this.weaponTime % 7 < 1.2;
       this.aegisActive = this.perks.aegis > 0 && this.weaponTime % 20 < Math.min(12, 3 + this.perks.aegis);
@@ -212,7 +230,7 @@
       this.fireClock -= dt;
       if (this.fireClock <= 0) {
         this.fire();
-        this.fireClock += this.fireInterval;
+        this.fireClock += this.fireInterval / (this.burstTime > 0 ? 3 : 1);
       }
       if (!this.boss && this.sectorKills < this.sectorGoal) {
         this.rushClock -= dt;
@@ -230,6 +248,12 @@
         m.oldX = m.x; m.oldY = m.y;
         m.y += m.speed * dt;
         m.x = m.rush ? m.x + m.drift * dt : clamp(m.x + m.drift * dt, m.radius, 360 - m.radius);
+        if (m.rush) {
+          if(m.x < m.radius && m.drift < 0) { m.x=2*m.radius-m.x; m.drift=-m.drift; }
+          if(m.x > 360-m.radius && m.drift > 0) { m.x=2*(360-m.radius)-m.x; m.drift=-m.drift; }
+          m.dustClock=(m.dustClock || 0)+dt;
+          if(m.dustClock>=.03) { m.dustClock=0; this.events.push({type:'dust',x:m.x,y:m.y}); }
+        }
         m.angle += m.spin * dt; m.flash = Math.max(0, m.flash - dt);
       }
       for (const b of this.bullets) {
@@ -254,6 +278,15 @@
           this.events.push({ type: 'hit', x: b.x, y: closest.y + closest.radius * 0.6 });
           if (closest.hp === 0) this.destroy(closest);
         }
+      }
+      if (this.shipId === 'orbit') {
+        const old=this.orbit; this.orbitAngle += dt*3;
+        this.orbit={x:this.player.x+Math.cos(this.orbitAngle)*42,y:this.player.y+Math.sin(this.orbitAngle)*42};
+        for(const m of this.meteors) if(!m.dead && hit(old.x-m.oldX,old.y-m.oldY,this.orbit.x-m.x,this.orbit.y-m.y,m.radius+6)) {
+          m.hp=Math.max(0,m.hp-12*dt); m.flash=.08;
+          if(m.hp===0) this.destroy(m);
+        }
+        if(this.boss && !this.boss.dead && this.orbit.y-6<=this.boss.y+90 && this.orbit.y+6>=this.boss.y-90) this.damageBoss(12*dt);
       }
       if (this.laserActive) {
         for (const m of this.meteors) if (!m.dead && m.y < this.player.y && Math.abs(m.x - this.player.x) < m.radius + 6) {
@@ -280,7 +313,7 @@
       this.bullets = this.bullets.filter(b => !b.dead && b.y > -40 && b.y < this.height + 40 && b.x > -40 && b.x < 400);
       this.meteors = this.meteors.filter(m => {
         if (m.dead) return false;
-        if (m.y - m.radius > this.height || (m.rush && ((m.drift < 0 && m.x < -40) || (m.drift > 0 && m.x > 400)))) { this.passed++; return false; }
+        if (m.y - m.radius > this.height) { this.passed++; return false; }
         return true;
       });
       if (this.state === 'playing') {
@@ -312,5 +345,5 @@
       this.checkProgress();
     }
   }
-  return { Game, hit, clamp, PERKS };
+  return { Game, hit, clamp, PERKS, SHIPS };
 });

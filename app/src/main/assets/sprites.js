@@ -114,5 +114,19 @@
     pc.fillStyle = rim && x + y < 100 ? '#30d6ee' : ['#060c28', '#111f58', '#1d3894', '#265bb6', '#3c94da'][light];
     pc.fillRect(x, y, 1, 1);
   }
-  window.MeteorSprites = { ship, rocks, themes, themedRocks, planet };
+  const ships={classic:ship};
+  const designs={
+    orbit:{color:'#a87cff',light:'#e4d1ff',points:[[11,0],[15,9],[22,5],[20,22],[14,19],[11,26],[8,19],[2,22],[0,5],[7,9]]},
+    critical:{color:'#ffaf35',light:'#fff0a6',points:[[11,0],[17,5],[16,13],[22,21],[22,25],[12,20],[0,25],[0,21],[6,13],[5,5]]},
+    diagonal:{color:'#36d5af',light:'#c0fff1',points:[[11,0],[14,14],[18,1],[22,4],[22,23],[15,20],[11,26],[7,20],[0,23],[0,4],[4,1],[8,14]]},
+    burst:{color:'#ee6aa5',light:'#ffd6f2',points:[[11,0],[16,8],[20,7],[22,14],[19,25],[14,23],[11,19],[8,23],[3,25],[0,14],[2,7],[6,8]]}
+  };
+  for(const [id,d] of Object.entries(designs)) {
+    const c=document.createElement('canvas');c.width=23;c.height=27;const x=c.getContext('2d');
+    x.fillStyle='#152440';x.beginPath();d.points.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();
+    x.strokeStyle=d.color;x.lineWidth=3;x.stroke();x.fillStyle=d.color;x.fillRect(8,9,7,12);
+    x.fillStyle=d.light;x.fillRect(10,4,3,13);x.fillStyle='#2497dc';x.fillRect(9,8,5,6);
+    x.fillStyle='#e8ffff';x.fillRect(10,8,2,3);x.fillStyle='#ffbf51';x.fillRect(5,22,3,4);x.fillRect(15,22,3,4);ships[id]=c;
+  }
+  window.MeteorSprites = { ship, ships, rocks, themes, themedRocks, planet };
 })();

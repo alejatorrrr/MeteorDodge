@@ -228,10 +228,10 @@ test('rush trajectories enter from top, left and right, never behind; travel is 
   assert.equal(m.x,x+vx*.05);assert.equal(m.y,y+vy*.05);
  }
 });
-test('rush meteors leaving either side are removed', () => {
+test('rush meteors bounce on either side, emit dust and leave only at the bottom', () => {
  for(const sign of [-1,1]) {
   const g=make();const m=g.spawnRush();Object.assign(m,{x:sign<0?-45:405,y:250,drift:sign*500,speed:10});
-  g.step(.05);assert.ok(!g.meteors.includes(m));assert.equal(g.passed,1);
+  g.step(.05);assert.ok(g.meteors.includes(m));assert.equal(Math.sign(m.drift),-sign);assert.ok(m.x>=m.radius && m.x<=360-m.radius);assert.equal(g.passed,0);assert.ok(g.events.some(e=>e.type==='dust'));m.y=g.height+40;g.step(.05);assert.ok(!g.meteors.includes(m));assert.equal(g.passed,1);
  }
 });
 
@@ -239,4 +239,27 @@ test('boss parts install once, repair and retain stats across sectors', () => {
  const g=make();g.sector=8;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
  assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,90);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
  g.chooseSpecial(g.specialChoices[0]);assert.equal(g.parts.armor,1);g.start();assert.equal(g.parts.armor,0);
+});
+
+test('ship perks reset once per run and do not leak into other ships',()=>{
+ const g=make();g.start('critical');assert.equal(g.perks.critical,1);g.perks.critical=4;g.start();assert.equal(g.perks.critical,1);
+ g.start('diagonal');assert.equal(g.perks.diagonal,1);assert.equal(g.perks.critical,0);g.fire();assert.equal(g.bullets.length,3);
+ g.start('classic');assert.equal(g.perks.diagonal,0);assert.equal(g.burstTime,0);
+});
+test('superburst lasts ten seconds, triples firing and freezes cooldown when paused',()=>{
+ const g=make();assert.equal(g.activateBurst(),false);g.start('burst');g.spawnClock=999;g.rushClock=999;
+ assert.equal(g.activateBurst(),true);assert.equal(g.activateBurst(),false);
+ for(let i=0;i<20;i++)g.step(.05);assert.ok(g.volleyCount>=8);assert.ok(g.burstTime<9.01);
+ g.pause();const remaining=g.burstCooldown;g.step(.05);assert.equal(g.burstCooldown,remaining);g.resume();
+ for(let i=0;i<201;i++)g.step(.05);assert.equal(g.burstTime,0);assert.ok(g.burstCooldown>160);
+ g.burstCooldown=.01;g.step(.05);assert.equal(g.activateBurst(),true);
+});
+test('orbital star damages nearby rocks without hurting distant rocks',()=>{
+ const g=make();g.start('orbit');g.spawnClock=999;g.fireClock=999;
+ const near=rock(g,{x:g.player.x+42,y:g.player.y,radius:13,hp:10,maxHp:10});
+ const far=rock(g,{x:30,y:200,hp:10,maxHp:10});g.step(.05);assert.ok(near.hp<10);assert.equal(far.hp,10);assert.equal(g.health,100);
+});
+test('late sector rock durability grows faster and small meteor speeds vary',()=>{
+ const g=make();g.random=()=>.1;const early=g.spawn();g.sector=20;const late=g.spawn();assert.ok(late.hp>early.hp*10);
+ g.sector=1;const speeds=new Set();for(let i=0;i<10;i++){let n=0;g.random=()=>++n===1?.1:i/10;speeds.add(g.spawn().speed);}assert.ok(speeds.size>5);
 });

@@ -101,3 +101,7 @@ Meteoros rápidos sin alerta, aproximadamente un 17 % más veloces. Llegan desde
 ## Versión 1.6
 
 Inicio y Game Over con las escenas pixel art suministradas, botones reales de despegue, reintento y menú principal. La selección de atributos usa iconos de corazón, impacto y velocidad, barras segmentadas y el rango actual/siguiente. Cada ventaja especial y pieza del taller tiene su propio icono pixel art. Los recursos están incluidos para funcionar sin conexión.
+
+## Versión 1.7
+
+Meteoros rápidos con rebotes laterales y polvo estelar, pequeños con velocidades más variadas y mayor resistencia por sector. Puntos abajo, atributos arriba. Hangar con cuatro naves adicionales: Estelar (3.000 puntos, estrella orbital), Fulgor (6.000, sobrecarga inicial), Tridente (10.000, diagonal inicial), Tempestad (15.000, ráfaga triple durante 10 s con recarga de 180 s). Desbloqueos por puntuación de una partida guardados localmente, selección persistente y ventajas propias al comenzar cada partida. La recarga se congela al pausar y al elegir mejoras.

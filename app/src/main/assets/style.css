@@ -127,3 +127,20 @@ h2 { font-weight: 400; font-size: 24px; line-height: 1.5; letter-spacing: -1px; 
 .attribute-meter i.next { background: var(--attribute); opacity: .55; border: 1px solid #fff; }
 .attribute-rank { font-size: 6px !important; color: #9bb8da !important; }
 @media(max-width:350px) { #upgrade-panel { padding-left: 10px; padding-right: 10px; } #upgrade-panel .upgrade-card { padding: 12px 6px; } .pixel-icon { width: 36px; height: 36px; } }
+
+/* Combat instruments above, score below; the pause control stays in a corner. */
+#hud { top: auto; bottom: max(12px, env(safe-area-inset-bottom)); padding: 6px 8px; gap: 12px; }
+#hud strong { font-size: 15px; } #hud .label { font-size: 6px; margin-bottom: 4px; }
+#pause { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, calc((100vw - 560px) / 2 + 12px)); }
+#vitals { top: max(16px, env(safe-area-inset-top)); right: 72px; }
+#level { top: 84px; } #boss-hud { top: 108px; }
+#perk-status { bottom: 70px; } #touch-hint { bottom: 90px; }
+#burst { position: absolute; bottom: 96px; right: 12px; min-height: 48px; padding: 10px; border: 2px solid #f594df; background: #321947e8; color: #fff0fc; font-size: 7px; }
+#burst:disabled { opacity: .6; }
+#fleet-toggle { display: none; } #stage[data-screen='ready'] #fleet-toggle { display: block; }
+#fleet { padding: 12px 0; } #fleet h2 { font-size: 16px; }
+.ship-choice { display: flex; width: 100%; gap: 12px; align-items: center; margin: 9px 0; padding: 10px; min-height: 80px; background: #0a1730; border: 1px solid #3c668f; color: #d9f6ff; text-align: left; font-size: 8px; line-height: 1.7; }
+.ship-choice small { display: block; color: #99b3d2; font-size: 7px; margin-top: 5px; }
+.ship-choice[aria-pressed='true'] { border: 2px solid #69e4ff; }
+.ship-choice:disabled { opacity: .45; }
+.fleet-preview { width: 46px; height: 54px; flex-shrink: 0; image-rendering: pixelated; }

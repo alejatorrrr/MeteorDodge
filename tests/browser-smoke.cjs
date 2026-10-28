@@ -94,6 +94,20 @@ const root = path.join(__dirname, '../app/src/main/assets');
     await page.locator('#action').scrollIntoViewIfNeeded();
     assert.ok((await page.locator('#action').boundingBox()).height>=44);
   }
+  await page.setViewportSize({width:393,height:851});
+  await page.evaluate(()=>{localStorage.setItem('meteor-unlock-best','15000');});
+  await page.reload();await page.locator('#fleet-toggle').click();
+  assert.equal(await page.locator('[data-ship]').count(),5);
+  assert.equal(await page.locator('[data-ship]:disabled').count(),0);
+  await page.locator('[data-ship="burst"]').click();
+  await page.screenshot({path:'/tmp/MeteorDodge-naves.png'});
+  await page.reload();await page.locator('#action').click();
+  assert.equal(await page.evaluate(()=>__game.shipId),'burst');
+  await page.locator('#burst').click();
+  assert.ok(await page.evaluate(()=>__game.burstTime>9));
+  const scoreBox=await page.locator('#hud').boundingBox();const vitalsBox=await page.locator('#vitals').boundingBox();
+  assert.ok(scoreBox.y>600 && vitalsBox.y<100);
+  await page.screenshot({path:'/tmp/MeteorDodge-hud.png'});
   assert.deepEqual(errors,[]);
   console.log('PASS: mobile launch, automatic fire, pause/resume, XP selection, damage upgrade, rock destruction, game over, restart, persistent record; no JS errors.');
  } finally {await browser.close();}

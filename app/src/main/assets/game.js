@@ -7,6 +7,25 @@
   let best = 0, storageAvailable = true;
   try { best = Math.max(0, Math.floor(Number(localStorage.getItem('meteor-dodge-best')) || 0)); }
   catch (_) { storageAvailable = false; }
+  let selectedShip='classic', unlockBest=best;
+  try { unlockBest=Math.max(best,Number(localStorage.getItem('meteor-unlock-best'))||0); selectedShip=localStorage.getItem('meteor-ship')||'classic'; } catch (_) {}
+  if(!MeteorEngine.SHIPS.some(s=>s.id===selectedShip && s.score<=unlockBest)) selectedShip='classic';
+  function shipSelection() {
+    $('ship-options').replaceChildren();
+    for(const ship of MeteorEngine.SHIPS) {
+      const button=document.createElement('button'); button.className='ship-choice'; button.dataset.ship=ship.id;
+      button.disabled=ship.score>unlockBest; button.setAttribute('aria-pressed',String(ship.id===selectedShip));
+      const preview=document.createElement('canvas'); preview.width=46;preview.height=54;preview.className='fleet-preview'; preview.setAttribute('aria-hidden','true');
+      const c=preview.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(MeteorSprites.ships[ship.id],0,0,46,54);
+      const label=document.createElement('span');label.textContent=ship.name+' · '+(button.disabled?ship.score+' PUNTOS':ship.id===selectedShip?'SELECCIONADA':'ELEGIR');
+      const desc=document.createElement('small');desc.textContent=ship.text;
+      label.append(desc);button.append(preview,label);
+      button.addEventListener('click',()=>{selectedShip=ship.id;try{localStorage.setItem('meteor-ship',selectedShip);}catch(_){}shipSelection();});
+      $('ship-options').append(button);
+    }
+  }
+  $('fleet-toggle').addEventListener('click',()=>{ $('fleet').hidden=!$('fleet').hidden;shipSelection(); });
+  $('burst').addEventListener('click',()=>game.activateBurst());
   let scale = 1, offsetY = 0, lastTime = 0, visualTime = 0, pointer = null;
   let lastPointer = null, particles = [], rings = [], previousState = 'ready', hitFlash = 0;
   const keys = new Set();
@@ -29,6 +48,15 @@
   }
   function hud() {
     $('stage').dataset.screen = game.state;
+    if(game.score>unlockBest) {
+      const before=unlockBest; unlockBest=game.score;
+      if(MeteorEngine.SHIPS.some(s=>s.score>before && s.score<=unlockBest)) {
+        try{localStorage.setItem('meteor-unlock-best',String(unlockBest));}catch(_){}
+      }
+    }
+    $('burst').hidden=game.shipId!=='burst' || game.state!=='playing';
+    $('burst').disabled=game.burstCooldown>0;
+    $('burst').textContent=game.burstTime>0 ? 'RÁFAGA '+Math.ceil(game.burstTime)+' s' : game.burstCooldown>0 ? 'RECARGA '+Math.ceil(game.burstCooldown)+' s' : 'SUPERRÁFAGA';
     $('score').textContent = format(game.score);
     $('best').textContent = format(Math.max(best, game.score));
     $('sector').textContent = String(game.sector).padStart(2, '0');
@@ -152,8 +180,9 @@
     hud();
   }));
   $('action').addEventListener('click', () => {
+    $('fleet').hidden = true;
     $('main-menu').hidden = true;
-    if (game.state === 'paused') game.resume(); else game.start();
+    if (game.state === 'paused') game.resume(); else game.start(selectedShip);
     previousState = 'playing'; lastTime = 0; particles = []; rings = []; hitFlash = 0; release();
     $('panel').hidden = true;
     $('special-panel').hidden = true; $('upgrade-panel').hidden = true;
@@ -208,6 +237,7 @@
         burst(e.x, e.y, e.size * 10, ['#aaa18a', '#676b5e', '#ffbf75', '#df694f']);
         rings.push({ x: e.x, y: e.y, life: .4, max: .4, radius: e.size * 12, color: '#ffb86b' });
       } else if (e.type === 'hit') burst(e.x, e.y, 4, ['#ffe5ac', '#ff9366'], 65);
+      else if (e.type === 'dust') { for(let i=0;i<3;i++) particles.push({x:e.x+(Math.random()-.5)*14,y:e.y+(Math.random()-.5)*14,vx:(Math.random()-.5)*18,vy:(Math.random()-.5)*18,life:.35+Math.random()*.3,color:i%2?'#86dbff':'#ffdc9a',size:1+Math.floor(Math.random()*2)}); }
       else if (e.type === 'hurt') {
         hitFlash = .2;
         burst(e.x, e.y, 16, e.shield ? ['#65cfff', '#d3f6ff'] : ['#ff7a87', '#ffb86b']);
@@ -230,7 +260,7 @@
     const flame = Math.floor(visualTime * 18) % 3;
     ctx.fillStyle = '#ed6933'; ctx.fillRect(-5, 21, 10, 8 + flame * 3);
     ctx.fillStyle = '#ffdb69'; ctx.fillRect(-2, 21, 4, 5 + flame * 2);
-    ctx.drawImage(MeteorSprites.ship, -23, -27, 46, 54);
+    ctx.drawImage(MeteorSprites.ships[game.shipId], -23, -27, 46, 54);
     if (game.parts.cannon) { ctx.fillStyle = '#c3edff'; ctx.fillRect(-18,-22,5,22); ctx.fillRect(13,-22,5,22); ctx.fillStyle='#eaa7ff'; ctx.fillRect(-17,-24,3,5); ctx.fillRect(14,-24,3,5); }
     if (game.parts.armor) { ctx.fillStyle='#55d4c8'; ctx.fillRect(-25,0,9,16); ctx.fillRect(16,0,9,16); ctx.fillStyle='#d5fff2'; ctx.fillRect(-25,0,9,3); ctx.fillRect(16,0,9,3); }
     if (game.parts.engine) { ctx.fillStyle='#4478c4'; ctx.fillRect(-16,14,7,13); ctx.fillRect(9,14,7,13); ctx.fillStyle='#aef6ff'; ctx.fillRect(-14,27,3,8+flame*2); ctx.fillRect(11,27,3,8+flame*2); }
@@ -297,7 +327,6 @@
       if (b.flash > 0) { ctx.fillStyle = '#fff0be33'; ctx.fillRect(0, top, 360, 175); }
     }
     for (const m of game.meteors) {
-      if (m.rush) { ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(Math.atan2(m.speed,m.drift)-Math.PI/2); ctx.fillStyle=theme.rock; ctx.globalAlpha=.5; ctx.fillRect(-7,-85,14,70); ctx.fillStyle='#d7f8ff'; ctx.fillRect(-2,-50,4,40); ctx.restore(); }
       ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.rotate(m.angle);
       const cracks = m.hp === m.maxHp ? 0 : Math.min(3, Math.ceil((1 - m.hp / m.maxHp) * 3));
       ctx.drawImage(MeteorSprites.themedRocks[(game.sector - 1) % 6][m.variant][cracks], -m.radius, -m.radius, m.radius * 2, m.radius * 2);
@@ -318,6 +347,7 @@
       ctx.restore();
     }
     if (game.state !== 'over') drawShip(game.player.x, game.player.y);
+    if(game.shipId==='orbit') { const o=game.orbit; ctx.fillStyle='#ffcf60';ctx.fillRect(Math.round(o.x)-6,Math.round(o.y)-2,12,4);ctx.fillRect(Math.round(o.x)-2,Math.round(o.y)-6,4,12);ctx.fillStyle='#fff5cb';ctx.fillRect(Math.round(o.x)-2,Math.round(o.y)-2,4,4); }
     const effectDt = ['paused', 'upgrade', 'special'].includes(game.state) ? 0 : dt;
     for (const p of particles) {
       p.x += p.vx * effectDt; p.y += p.vy * effectDt; p.life -= effectDt * 1.4;
