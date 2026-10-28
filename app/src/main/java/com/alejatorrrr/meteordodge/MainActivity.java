@@ -60,7 +60,21 @@ public final class MainActivity extends Activity {
         });
         rewardAds = new RewardAds(this, webView);
         webView.addJavascriptInterface(rewardAds, "MeteorAds");
-        setContentView(webView);
+        android.widget.FrameLayout content = new android.widget.FrameLayout(this);
+        content.setBackgroundColor(0xFF060A19);
+        content.addView(webView, new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+        if (Build.VERSION.SDK_INT >= 36) {
+            // Android 16 enforces edge-to-edge; keep controls clear of cutouts.
+            content.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets safe = insets.getInsets(
+                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return insets;
+            });
+        }
+        setContentView(content);
         hideSystemBars();
         rewardAds.startConsent();
         webView.loadUrl("https://" + ORIGIN + "/assets/index.html");
