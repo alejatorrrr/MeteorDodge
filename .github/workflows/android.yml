@@ -61,3 +61,15 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Prepare unsigned distribution and public signing tool
+        run: |
+          mkdir -p distribution
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -P 16 -f 4 app/build/outputs/apk/release/app-release-unsigned.apk distribution/MeteorDodge-unsigned.apk
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" distribution/apksigner.jar
+      - name: Upload unsigned distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeteorDodge-release-unsigned
+          path: distribution/
+          if-no-files-found: error
+          retention-days: 30
