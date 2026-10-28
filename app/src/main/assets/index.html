@@ -37,12 +37,14 @@
         <div id="scene-art" class="scene-art" aria-hidden="true"><img src="menu-scenes.jpg" alt=""></div>
         <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Cada 40 rocas: nuevo sector y ventaja especial.<br>Jefe cada 6 sectores. ¡Destrúyelo a tiempo!</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
+        <button id="revive-ad" class="secondary" hidden>VER ANUNCIO · REVIVIR CON 50 % DE VIDA</button>
         <button id="action" class="primary">PULSA PARA DESPEGAR</button>
         <button id="abandon" class="secondary" hidden>ABANDONAR PARTIDA</button>
         <button id="main-menu" class="secondary" hidden>MENÚ PRINCIPAL</button>
         <button id="fleet-toggle" class="secondary">NAVES · HANGAR</button>
+        <button id="ad-privacy" class="secondary" hidden>PRIVACIDAD DE ANUNCIOS</button>
         <section id="fleet" hidden><div class="fleet-banner" aria-hidden="true"></div><h2>ELIGE TU NAVE</h2><p>Desbloqueos permanentes por puntuación en una partida.</p><div id="ship-options"></div></section>
-        <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
+        <p class="hint" id="hint">Partidas sin conexión · Anuncios opcionales</p>
       </div>
     </section>
     <section id="upgrade-panel" role="dialog" aria-modal="true" aria-labelledby="upgrade-title" hidden>
@@ -63,9 +65,12 @@
         <img id="workshop-art" src="workshop.jpg" width="1280" height="720" alt="Taller espacial pixel art: nave en una plataforma de reparación, brazos mecánicos y paneles de mejoras" hidden>
         <p id="special-subtitle">Elige una ventaja para el siguiente sector.</p>
         <div id="special-options"></div>
+        <button id="extra-ad" class="secondary" hidden>VER ANUNCIO · OTRA VENTAJA A ELEGIR</button>
         <p class="hint">Las ventajas duran esta partida y mejoran al repetirlas.</p>
       </div>
     </section>
+    <div id="ad-status" role="status" aria-live="polite" hidden></div>
+    <div id="ad-wait" role="dialog" aria-modal="true" hidden><p>ABRIENDO ANUNCIO…</p></div>
     <button id="burst" hidden>SUPERRÁFAGA</button>
     <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>
   </main>

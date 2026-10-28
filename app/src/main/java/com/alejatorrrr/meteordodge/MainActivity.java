@@ -16,6 +16,7 @@ import java.io.IOException;
 
 public final class MainActivity extends Activity {
     private WebView webView;
+    private RewardAds rewardAds;
     private static final String ORIGIN = "appassets.androidplatform.net";
 
     @Override
@@ -57,8 +58,11 @@ public final class MainActivity extends Activity {
                         java.util.Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
             }
         });
+        rewardAds = new RewardAds(this, webView);
+        webView.addJavascriptInterface(rewardAds, "MeteorAds");
         setContentView(webView);
         hideSystemBars();
+        rewardAds.startConsent();
         webView.loadUrl("https://" + ORIGIN + "/assets/index.html");
     }
 
@@ -103,6 +107,8 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        rewardAds.destroy();
+        webView.removeJavascriptInterface("MeteorAds");
         webView.destroy();
         super.onDestroy();
     }

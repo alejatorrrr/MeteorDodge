@@ -35,6 +35,28 @@
   }
   $('fleet-toggle').addEventListener('click',()=>{ $('fleet').hidden=!$('fleet').hidden;shipSelection(); });
   $('burst').addEventListener('click',()=>game.activateBurst());
+  let adRequest=null, adSequence=0, adMessageTimer;
+  const adNative=()=>window.MeteorAds && typeof window.MeteorAds.showReward==='function';
+  function adMessage(text) {clearTimeout(adMessageTimer);$('ad-status').textContent=text;$('ad-status').hidden=false;adMessageTimer=setTimeout(()=>$('ad-status').hidden=true,5500);}
+  function requestReward(kind) {
+    if(adRequest || !adNative())return;
+    if(kind==='revive' ? game.state!=='over'||game.revived : !game.canRewardExtra())return;
+    adRequest={id:String(++adSequence),kind};$('ad-wait').hidden=false;
+    try{window.MeteorAds.showReward(kind,adRequest.id);}catch(_){adRequest=null;$('ad-wait').hidden=true;adMessage('Anuncio no disponible. Puedes seguir jugando.');}
+  }
+  $('revive-ad').addEventListener('click',()=>requestReward('revive'));
+  $('extra-ad').addEventListener('click',()=>requestReward('extra'));
+  $('ad-privacy').addEventListener('click',()=>{if(window.MeteorAds)window.MeteorAds.privacy();});
+  window.addEventListener('meteor-ad-result',e=>{
+    if(!adRequest || e.detail.id!==adRequest.id)return;
+    const request=adRequest;adRequest=null;$('ad-wait').hidden=true;
+    if(!e.detail.earned){adMessage(e.detail.message || 'No se ha completado el anuncio. No se ha aplicado ninguna recompensa.');return;}
+    if(request.kind==='revive' && game.revive()) {
+      game.state='playing';pause();previousState='paused';particles=[];rings=[];hitFlash=0;
+      $('revive-ad').hidden=true;adMessage('Vida recuperada. Pulsa Continuar para volver a volar.');
+    } else if(request.kind==='extra' && game.rewardExtra()) {showSpecial();adMessage('Elige tu ventaja normal y después la adicional.');}
+    hud();
+  });
   let scale = 1, offsetY = 0, lastTime = 0, visualTime = 0, pointer = null;
   let lastPointer = null, particles = [], rings = [], previousState = 'ready', hitFlash = 0;
   const keys = new Set();
@@ -57,6 +79,9 @@
   }
   function hud() {
     $('stage').dataset.screen = game.state;
+    $('revive-ad').hidden=!adNative() || game.state!=='over' || game.revived;
+    $('extra-ad').hidden=!adNative() || !game.canRewardExtra();
+    $('ad-privacy').hidden=!adNative();
     if(game.score>unlockBest) {
       const before=unlockBest; unlockBest=game.score;
       if(MeteorEngine.SHIPS.some(s=>s.score>before && s.score<=unlockBest)) {
@@ -143,7 +168,8 @@
     $('special-subtitle').textContent = 'Sector ' + game.sector + ' superado. Elige para entrar en el ' + (game.sector + 1) + '.';
     $('workshop-art').hidden = !game.workshop;
     $('special-panel').classList.toggle('workshop', game.workshop);
-    $('special-title').textContent = game.workshop ? 'TALLER ESPACIAL' : 'VENTAJA ESPECIAL';
+    $('special-title').textContent = game.workshop ? 'TALLER ESPACIAL' : game.bonusSelection ? 'VENTAJA ADICIONAL' : 'VENTAJA ESPECIAL';
+    if(game.bonusSelection) $('special-subtitle').textContent='Recompensa del anuncio: elige una ventaja adicional.';
     if (game.workshop) $('special-subtitle').textContent = 'Botín del jefe: elige una pieza para instalar. Reparación de vida incluida.';
     $('special-options').replaceChildren();
     for (const id of game.specialChoices) {
@@ -184,7 +210,7 @@
     $('title').textContent = 'METEOR DODGE'; $('eyebrow').textContent = 'ARCADE ESPACIAL';
     $('message').textContent = 'Arrastra para pilotar. Tu nave dispara sola. Cada 40 rocas, un nuevo sector.';
     $('action').textContent = 'PULSA PARA DESPEGAR'; $('results').hidden = true; $('main-menu').hidden = true;
-    $('hint').textContent = 'Sin conexión · Sin anuncios · Solo reflejos'; hud();
+    $('hint').textContent = 'Partidas sin conexión · Anuncios opcionales'; hud();
   });
   document.querySelectorAll('[data-upgrade]').forEach(button => button.addEventListener('click', () => {
     if (!game.chooseUpgrade(button.dataset.upgrade)) return;

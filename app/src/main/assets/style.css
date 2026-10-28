@@ -171,3 +171,15 @@ p { font-size: 10px; } .hint { font-size: 7px; } .eyebrow { font-size: 8px; }
 .fleet-preview { width: 80px; height: 94px; }
 @media(max-width:350px) { .vital {font-size:7px;} #level {font-size:6px;} .ship-choice > span:last-child {font-size:10px;} .ship-choice small {font-size:8px;} #hud strong {font-size:16px;} }
 .fleet-visual:not(.locked) { align-self: center; aspect-ratio: 2; background-size: 224.474% auto; }
+
+/* Two compact score islands leave the central playfield unobstructed. */
+#hud { background: transparent; border: 0; padding: 0; justify-content: space-between; gap: 24px; align-items: flex-end; }
+#hud > div { background: #03091eaa; padding: 7px 9px; max-width: 47%; }
+#hud .record { flex: 0 1 auto; text-align: right; }
+#hud strong { font-size: clamp(19px, 6vw, 25px); overflow-wrap: anywhere; }
+#hud .label { font-size: 8px; }
+#ad-status { position: absolute; bottom: 90px; left: 20px; right: 20px; padding: 15px; font-size: 9px; line-height: 1.8; background: #122741; border: 1px solid #65e9ff; pointer-events: none; z-index: 10; }
+#ad-wait { position: absolute; inset: 0; z-index: 20; background: #020715ed; display: flex; align-items: center; justify-content: center; }
+#revive-ad, #extra-ad { color: #ffe0a1; border-color: #e5ae61; font-size: 9px; line-height: 1.8; padding: 12px; }
+#ad-privacy { display: none; font-size: 8px; }
+#stage[data-screen='ready'] #ad-privacy, #stage[data-screen='paused'] #ad-privacy, #stage[data-screen='over'] #ad-privacy { display: block; }

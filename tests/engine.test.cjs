@@ -306,3 +306,18 @@ test('health choice raises the maximum and heals without exceeding it',()=>{
  const g=make();g.health=40;g.state='upgrade';g.chooseUpgrade('health');assert.equal(g.maxHealth,125);assert.equal(g.health,65);
  g.health=125;g.state='upgrade';g.chooseUpgrade('health');assert.equal(g.maxHealth,150);assert.equal(g.health,150);
 });
+
+test('revive restores half health once, keeps progress and safely separates a live boss',()=>{
+ const g=make();g.sector=6;g.spawnBoss();const hp=g.boss.hp;g.boss.y=g.height;g.health=0;g.state='over';g.score=1234;
+ g.enemyBullets.push({x:180,y:500});assert.equal(g.revive(),true);assert.equal(g.health,50);assert.equal(g.state,'paused');
+ assert.equal(g.score,1234);assert.equal(g.sector,6);assert.equal(g.boss.hp,hp);assert.ok(g.boss.y+90<=g.player.y-200);
+ assert.equal(g.enemyBullets.length,0);assert.equal(g.invulnerable,3);g.state='over';assert.equal(g.revive(),false);
+ g.start();assert.equal(g.revived,false);
+});
+test('extra reward preserves free choice, excludes duplicate perk and is limited per six-sector cycle',()=>{
+ const g=make();assert.equal(g.rewardExtra(),false);g.sectorKills=40;g.checkProgress();assert.equal(g.rewardExtra(),true);assert.equal(g.rewardExtra(),false);
+ const first=g.specialChoices[0];g.chooseSpecial(first);assert.equal(g.sector,2);assert.equal(g.bonusSelection,true);assert.equal(g.state,'special');
+ assert.ok(!g.specialChoices.includes(first));const bonus=g.specialChoices[0];g.chooseSpecial(bonus);assert.equal(g.sector,2);assert.equal(g.perks[bonus],1);assert.equal(g.state,'playing');
+ g.sectorKills=40;g.checkProgress();assert.equal(g.canRewardExtra(),false);
+ g.sector=7;assert.equal(g.canRewardExtra(),true);g.workshop=true;assert.equal(g.canRewardExtra(),false);
+});

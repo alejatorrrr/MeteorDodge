@@ -117,3 +117,7 @@ Movimiento base reducido un 14 % aproximadamente (táctil 550, teclado 250). Imp
 ## Versión 1.10
 
 Abandonar desde pausa guarda récord/desbloqueos y vuelve al menú. Texto ampliado; mejora de vida indica +25 al máximo y cura 25. Meteoros sorpresa: 90 % de escudo al destruirlos; normales 8 %. Impactos: 12 sin escudo para pequeños, 26/39/56 con daño normal por tamaño. Hangar inspirado en la referencia con retratos, naves detalladas en vuelo y siluetas negras con candados para bloqueadas. Propuesta de publicidad voluntaria en `docs/ANUNCIOS.md`; aún no hay anuncios ni SDK.
+
+## Versión 1.11
+
+Puntos grandes a la izquierda y récord a la derecha, sin barra opaca central. Integración nativa AdMob de anuncios recompensados para revivir y obtener una ventaja extra; UMP y opciones de privacidad. APK debug con identificadores de prueba: **no monetiza todavía**. Requisitos y configuración de producción en `docs/ANUNCIOS.md`. El juego funciona offline; los anuncios necesitan conexión. Android mínimo ahora 7.0/API 24 por el SDK publicitario.

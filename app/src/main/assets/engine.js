@@ -37,6 +37,7 @@
       this.player = { x: 180, y: this.height - 100, radius: 13 };
       this.target = { x: this.player.x, y: this.player.y };
       this.meteors = []; this.bullets = []; this.pickups = []; this.events = [];
+      this.revived = false; this.extraRewardCycle = -1; this.extraCredit = false; this.bonusSelection = false;
       this.time = 0; this.passed = 0; this.kills = 0; this.score = 0;
       this.sector = 1; this.sectorKills = 0; this.sectorGoal = 40;
       this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13;
@@ -56,6 +57,23 @@
     start(shipId = this.shipId) {
       this.shipId = SHIPS.some(s=>s.id===shipId) ? shipId : 'classic';
       this.reset(); this.state = 'playing';
+    }
+    revive() {
+      if(this.state!=='over' || this.revived) return false;
+      this.revived=true; this.health=Math.ceil(this.maxHealth*.5); this.shield=0;
+      this.meteors=[];this.enemyBullets=[];this.bullets=[];this.pickups=[];
+      this.player.y=this.height-100;this.target={x:this.player.x,y:this.player.y};
+      this.orbit={x:this.player.x+42,y:this.player.y};
+      if(this.boss && !this.boss.dead) {this.boss.y=Math.min(this.boss.y,this.player.y-290);this.boss.shotClock=4;}
+      this.invulnerable=3;this.spawnClock=2;this.rushClock=Math.max(3,this.rushClock);this.state='paused';return true;
+    }
+    canRewardExtra() {
+      return this.state==='special' && !this.workshop && !this.bonusSelection && !this.extraCredit
+        && this.extraRewardCycle!==Math.floor((this.sector-1)/6);
+    }
+    rewardExtra() {
+      if(!this.canRewardExtra())return false;
+      this.extraRewardCycle=Math.floor((this.sector-1)/6);this.extraCredit=true;return true;
     }
     activateBurst() {
       if(this.state !== 'playing' || this.shipId !== 'burst' || this.burstCooldown > 0) return false;
@@ -175,9 +193,15 @@
       }
       this.perks[id]++;
       if (id === 'capacity') this.maxShield += 20;
+      if(this.bonusSelection) {this.bonusSelection=false;this.specialChoices=[];this.state='playing';this.checkProgress();return true;}
       this.sector++; this.sectorKills = 0; this.pendingSpecial = false;
       this.specialChoices = []; this.boss = null; this.enemyBullets = []; this.meteors = []; this.bullets = [];
       this.weaponTime = 0; this.spawnClock = 1; this.state = 'playing';
+      if(this.extraCredit) {
+        this.extraCredit=false;this.bonusSelection=true;this.state='special';
+        const pool=PERKS.filter(p=>p.id!==id);
+        for(let i=0;i<3;i++)this.specialChoices.push(pool.splice(Math.min(pool.length-1,Math.floor(this.random()*pool.length)),1)[0].id);
+      }
       this.checkProgress(); return true;
     }
     spawnBoss() {

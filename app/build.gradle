@@ -8,14 +8,48 @@ android {
 
     defaultConfig {
         applicationId 'com.alejatorrrr.meteordodge'
-        minSdk 23
+        minSdk 24
         targetSdk 35
-        versionCode 11
-        versionName '1.10'
+        versionCode 12
+        versionName '1.11'
     }
 
+    buildFeatures { buildConfig true }
+    // Debug builds always use Google's official test inventory.
+    buildTypes {
+        debug {
+            manifestPlaceholders = [admobAppId: 'ca-app-pub-3940256099942544~3347511713']
+            buildConfigField 'String', 'REVIVE_AD_ID', '"ca-app-pub-3940256099942544/5224354917"'
+            buildConfigField 'String', 'EXTRA_AD_ID', '"ca-app-pub-3940256099942544/5224354917"'
+        }
+        release {
+            manifestPlaceholders = [admobAppId: providers.gradleProperty('ADMOB_APP_ID').getOrElse('ca-app-pub-3940256099942544~3347511713')]
+            buildConfigField 'String', 'REVIVE_AD_ID', '"' + providers.gradleProperty('ADMOB_REVIVE_ID').getOrElse('ca-app-pub-3940256099942544/5224354917') + '"'
+            buildConfigField 'String', 'EXTRA_AD_ID', '"' + providers.gradleProperty('ADMOB_EXTRA_ID').getOrElse('ca-app-pub-3940256099942544/5224354917') + '"'
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+}
+
+// Refuse a production build without the publisher's real identifiers.
+tasks.configureEach { task ->
+    if (task.name == 'preReleaseBuild') {
+        task.doFirst {
+            ['ADMOB_APP_ID', 'ADMOB_REVIVE_ID', 'ADMOB_EXTRA_ID'].each { key ->
+                def value = providers.gradleProperty(key).getOrElse('')
+                def pattern = key == 'ADMOB_APP_ID' ? /ca-app-pub-\d{16}~\d{10}/ : /ca-app-pub-\d{16}\/\d{10}/
+                if (!(value ==~ pattern) || value.contains('3940256099942544')) {
+                    throw new GradleException("Configure a real ${key} before building release. Debug always uses test ads.")
+                }
+            }
+        }
     }
 }

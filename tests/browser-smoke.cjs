@@ -122,6 +122,31 @@ const root = path.join(__dirname, '../app/src/main/assets');
   const scoreBox=await page.locator('#hud').boundingBox();const vitalsBox=await page.locator('#vitals').boundingBox();
   assert.ok(scoreBox.y>600 && vitalsBox.y<100);
   await page.screenshot({path:'/tmp/MeteorDodge-hud.png'});
+  const scores=await page.locator('#hud > div').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,right:r.right};}));
+  assert.ok(scores[0].right<scores[1].x && scores[1].right>350);
+  // Simulate native callback boundaries, not an actual network advertisement.
+  await page.evaluate(()=>{
+    window.MeteorAds={showReward:(kind,id)=>{window.testAd={kind,id};},privacy:()=>{}};
+    const g=__game;g.invulnerable=0;g.shield=0;g.health=1;g.meteors=[];
+    const m=g.spawn();Object.assign(m,{x:g.player.x,y:g.player.y,speed:0,drift:0,hp:99,size:3});
+  });
+  await page.locator('#revive-ad').waitFor({state:'visible'});await page.locator('#revive-ad').click();
+  assert.equal(await page.locator('#ad-wait').isVisible(),true);
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('meteor-ad-result',{detail:{id:testAd.id,earned:false}})));
+  assert.equal(await page.evaluate(()=>__game.state),'over');assert.equal(await page.locator('#ad-wait').isVisible(),false);
+  await page.locator('#revive-ad').click();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('meteor-ad-result',{detail:{id:testAd.id,earned:true}})));
+  assert.equal(await page.evaluate(()=>__game.state),'paused');assert.equal(await page.evaluate(()=>__game.health),50);
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('meteor-ad-result',{detail:{id:testAd.id,earned:true}})));
+  assert.equal(await page.evaluate(()=>__game.health),50);
+  await page.locator('#action').click();
+  await page.evaluate(()=>{__game.sectorKills=40;__game.meteors=[];__game.pickups=[];});
+  await page.locator('#extra-ad').waitFor({state:'visible'});await page.locator('#extra-ad').click();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('meteor-ad-result',{detail:{id:testAd.id,earned:true}})));
+  await page.locator('[data-special]').first().click();
+  assert.equal(await page.locator('#special-title').textContent(),'VENTAJA ADICIONAL');
+  await page.locator('[data-special]').first().click();
+  assert.equal(await page.evaluate(()=>__game.sector),2);
   assert.deepEqual(errors,[]);
   console.log('PASS: mobile launch, automatic fire, pause/resume, XP selection, damage upgrade, rock destruction, game over, restart, persistent record; no JS errors.');
  } finally {await browser.close();}
