@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="engine.js" defer></script>
   <script src="sprites.js" defer></script>
+  <script src="icons.js" defer></script>
   <script src="game.js" defer></script>
 </head>
 <body>
@@ -33,9 +34,11 @@
         <img id="brand-badge" src="app-icon.jpg" width="52" height="52" alt="Meteorito de Meteor Dodge">
         <canvas id="ship-preview" width="92" height="108" aria-hidden="true"></canvas>
         <h1 id="title" class="arcade-title"><span class="logo-text">METEOR DODGE</span><span class="logo-art" aria-hidden="true"><img src="title-reference.jpg" alt=""></span></h1>
+        <div id="scene-art" class="scene-art" aria-hidden="true"><img src="menu-scenes.jpg" alt=""></div>
         <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Cada 40 rocas: nuevo sector y ventaja especial.<br>Jefe cada 8 sectores. ¡Destrúyelo a tiempo!</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
-        <button id="action" class="primary">JUGAR <span aria-hidden="true">↗</span></button>
+        <button id="action" class="primary">PULSA PARA DESPEGAR</button>
+        <button id="main-menu" class="secondary" hidden>MENÚ PRINCIPAL</button>
         <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
       </div>
     </section>
@@ -44,7 +47,7 @@
         <div class="eyebrow">EVOLUCIONA TU NAVE</div>
         <h2 id="upgrade-title">NIVEL <span id="upgrade-level">2</span></h2>
         <p>Elige una mejora para continuar</p>
-        <button class="upgrade-option" data-upgrade="rate"><span class="upgrade-icon">»</span><span><strong>CADENCIA</strong><small id="rate-description">Dispara más rápido</small></span><b>→</b></button>
+        <button class="upgrade-option" data-upgrade="rate"><span class="upgrade-icon">»</span><span><strong>VELOCIDAD DE ATAQUE</strong><small id="rate-description">Dispara más rápido</small></span><b>→</b></button>
         <button class="upgrade-option" data-upgrade="damage"><span class="upgrade-icon">✦</span><span><strong>DAÑO</strong><small id="damage-description">+1 de daño por disparo</small></span><b>→</b></button>
         <button class="upgrade-option" data-upgrade="health"><span class="upgrade-icon">+</span><span><strong>VIDA</strong><small>+25 de vida máxima y recupera 25</small></span><b>→</b></button>
         <p class="hint">La partida está pausada mientras eliges.</p>

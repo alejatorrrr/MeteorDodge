@@ -97,3 +97,7 @@ Después de cada jefe se abre el taller: elige entre tres piezas de su botín. C
 ## Versión 1.5
 
 Meteoros rápidos sin alerta, aproximadamente un 17 % más veloces. Llegan desde arriba o los laterales, siempre por delante de la nave, siguiendo una trayectoria fija sin perseguirla. Su estela sigue la dirección del movimiento. El taller muestra la ilustración pixel art del hangar, incluida en la aplicación para funcionar sin conexión, con las tres piezas accesibles mediante desplazamiento en pantallas pequeñas. Verificación: 35 pruebas de mecánicas y prueba de interfaz móvil.
+
+## Versión 1.6
+
+Inicio y Game Over con las escenas pixel art suministradas, botones reales de despegue, reintento y menú principal. La selección de atributos usa iconos de corazón, impacto y velocidad, barras segmentadas y el rango actual/siguiente. Cada ventaja especial y pieza del taller tiene su propio icono pixel art. Los recursos están incluidos para funcionar sin conexión.

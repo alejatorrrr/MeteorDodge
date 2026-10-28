@@ -94,3 +94,36 @@ h2 { font-weight: 400; font-size: 24px; line-height: 1.5; letter-spacing: -1px; 
 #special-panel.workshop .upgrade-card { max-width: 520px; margin: auto 0; }
 #special-panel.workshop .eyebrow { display: none; }
 #workshop-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; margin: 14px 0; border: 1px solid #4478a7; box-shadow: 0 0 18px #1d99c133; image-rendering: pixelated; }
+
+/* Scene windows show the two supplied panels, keeping real controls tappable. */
+.scene-art { display: none; position: relative; overflow: hidden; width: 100%; aspect-ratio: 640 / 444; border: 1px solid #315777; }
+.scene-art img { display: block; position: absolute; width: 200%; max-width: none; height: auto; top: 0; left: 0; image-rendering: pixelated; }
+#stage[data-screen='ready'] .scene-art, #stage[data-screen='over'] .scene-art { display: block; }
+#stage[data-screen='over'] .scene-art { aspect-ratio: 630 / 415; border-color: #772e49; }
+#stage[data-screen='over'] .scene-art img { width: 203.175%; left: -103.175%; }
+#stage[data-screen='ready'] #panel, #stage[data-screen='over'] #panel { padding: 70px 16px 20px; background: #020615f5; align-items: flex-start; }
+#stage[data-screen='ready'] #panel .card, #stage[data-screen='over'] #panel .card { max-width: 520px; margin: auto 0; }
+#stage[data-screen='ready'] #title, #stage[data-screen='over'] #title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
+#stage[data-screen='ready'] #brand-badge, #stage[data-screen='over'] #brand-badge,
+#stage[data-screen='ready'] #eyebrow, #stage[data-screen='over'] #eyebrow { display: none; }
+#stage[data-screen='over'] #message { display: none; }
+#stage[data-screen='over'] #action { color: #ffe194; border-color: #ffc45d; box-shadow: inset 0 0 12px #ffb52b33, 0 0 8px #ffb52b66; }
+#action { font-size: 11px; }
+.secondary { min-height: 48px; margin-top: 12px; width: 100%; border: 2px solid #356eaa; background: #07152b; color: #66dfff; font-size: 10px; }
+#stage[data-screen='over'] #final-score { font-size: 28px; }
+#stage[data-screen='over'] #results { margin: 14px 0 0; }
+#stage[data-screen='over'] #action { margin-top: 12px; }
+#upgrade-panel { background: radial-gradient(ellipse at top, #153458, #03091cf7 65%); }
+#upgrade-panel .upgrade-card { border: 2px solid #467baa; padding: 16px 12px; background: #040c20; box-shadow: inset 0 0 0 4px #0f203e, 0 0 20px #1d82c333; }
+#upgrade-panel .upgrade-option { --attribute: #42ceff; border: 2px solid #325c8f; border-left: 3px solid var(--attribute); background: linear-gradient(135deg,#0c2040,#02091c); padding: 14px 8px; }
+#upgrade-panel [data-upgrade='health'] { --attribute: #ff335e; }
+#upgrade-panel [data-upgrade='damage'] { --attribute: #ffba41; }
+#upgrade-panel .upgrade-option strong { font-size: 8px; }
+.pixel-icon { width: 44px; height: 44px; flex-shrink: 0; image-rendering: pixelated; filter: drop-shadow(0 0 4px #2ba7df44); }
+#special-panel .pixel-icon { width: 40px; height: 40px; }
+.attribute-meter { display: flex; gap: 3px; padding: 3px; border: 2px solid #426188; margin-top: 10px; transform: skew(-9deg); background: #020717; }
+.attribute-meter i { flex: 1; height: 13px; background: #15253e; box-shadow: inset 0 2px #263956; }
+.attribute-meter i.filled { background: var(--attribute); box-shadow: inset 0 3px #ffffff44; }
+.attribute-meter i.next { background: var(--attribute); opacity: .55; border: 1px solid #fff; }
+.attribute-rank { font-size: 6px !important; color: #9bb8da !important; }
+@media(max-width:350px) { #upgrade-panel { padding-left: 10px; padding-right: 10px; } #upgrade-panel .upgrade-card { padding: 12px 6px; } .pixel-icon { width: 36px; height: 36px; } }

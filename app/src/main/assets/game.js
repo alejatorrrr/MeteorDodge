@@ -72,7 +72,8 @@
     $('final-score').textContent = game.score;
     $('record-message').textContent = newRecord ? '¡NUEVO RÉCORD!' : 'Récord: ' + best;
     $('results').hidden = false;
-    $('action').textContent = 'VOLVER A VOLAR ↗';
+    $('action').textContent = 'REINTENTAR';
+    $('main-menu').hidden = false;
     $('hint').textContent = storageAvailable ? 'Tu récord se guarda en este dispositivo.' : 'El almacenamiento no está disponible: récord solo en esta sesión.';
     $('panel').hidden = false;
     $('pause').hidden = true;
@@ -89,6 +90,11 @@
     const nextInterval = 0.14 + 0.24 * Math.pow(0.88, game.upgrades.rate + 1);
     $('rate-description').textContent = (1 / game.fireInterval).toFixed(1) + ' → ' + (1 / nextInterval).toFixed(1) + ' disparos / s';
     $('damage-description').textContent = game.damage + ' → ' + (game.damage + 1) + ' de daño por disparo';
+    for (const button of document.querySelectorAll('[data-upgrade]')) {
+      const rank = game.upgrades[button.dataset.upgrade];
+      button.querySelector('.attribute-rank').textContent = 'RANGO ' + rank + ' → ' + (rank + 1);
+      button.querySelectorAll('.attribute-meter i').forEach((pip, i) => { pip.className = i < Math.min(rank, 9) ? 'filled' : i === Math.min(rank, 9) ? 'next' : ''; });
+    }
     $('upgrade-panel').hidden = false;
     $('pause').hidden = true;
   }
@@ -103,7 +109,7 @@
     for (const id of game.specialChoices) {
       const perk = game.workshop ? { name: {cannon:'CAÑONES DE PLASMA',armor:'ALAS BLINDADAS',engine:'MOTORES IÓNICOS'}[id], text: {cannon:'+2 de daño. Instala cañones laterales.',armor:'+30 de escudo máximo y recarga. Cambia las alas.',engine:'+90 de velocidad de respuesta y +45 de velocidad con teclado. Nuevos propulsores.'}[id] } : MeteorEngine.PERKS.find(p => p.id === id);
       const button = document.createElement('button'); button.className = 'upgrade-option'; button.dataset.special = id;
-      const icon = document.createElement('span'); icon.className = 'upgrade-icon'; icon.textContent = '✦';
+      const icon = MeteorIcons.create(id); icon.classList.add('upgrade-icon');
       const text = document.createElement('span'), title = document.createElement('strong'), desc = document.createElement('small');
       title.textContent = perk.name + ' · RANGO ' + ((game.workshop ? game.parts[id] : game.perks[id]) + 1); desc.textContent = perk.text;
       text.append(title, desc); button.append(icon, text);
@@ -119,6 +125,20 @@
     }
     $('special-panel').hidden = false;
   }
+  document.querySelectorAll('[data-upgrade]').forEach(button => {
+    button.querySelector('.upgrade-icon').replaceWith(MeteorIcons.create(button.dataset.upgrade));
+    const meter = document.createElement('span'); meter.className = 'attribute-meter'; meter.setAttribute('aria-hidden', 'true');
+    for (let i=0;i<10;i++) meter.append(document.createElement('i'));
+    const rank = document.createElement('small'); rank.className = 'attribute-rank';
+    button.children[1].append(meter, rank);
+  });
+  $('main-menu').addEventListener('click', () => {
+    game.reset(); game.state = 'ready'; previousState = 'ready'; release(); particles=[]; rings=[];
+    $('title').textContent = 'METEOR DODGE'; $('eyebrow').textContent = 'ARCADE ESPACIAL';
+    $('message').textContent = 'Arrastra para pilotar. Tu nave dispara sola. Cada 40 rocas, un nuevo sector.';
+    $('action').textContent = 'PULSA PARA DESPEGAR'; $('results').hidden = true; $('main-menu').hidden = true;
+    $('hint').textContent = 'Sin conexión · Sin anuncios · Solo reflejos'; hud();
+  });
   document.querySelectorAll('[data-upgrade]').forEach(button => button.addEventListener('click', () => {
     if (!game.chooseUpgrade(button.dataset.upgrade)) return;
     release(); lastTime = 0;
@@ -132,6 +152,7 @@
     hud();
   }));
   $('action').addEventListener('click', () => {
+    $('main-menu').hidden = true;
     if (game.state === 'paused') game.resume(); else game.start();
     previousState = 'playing'; lastTime = 0; particles = []; rings = []; hitFlash = 0; release();
     $('panel').hidden = true;
