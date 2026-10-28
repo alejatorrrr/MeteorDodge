@@ -57,3 +57,15 @@ h2 { font-size: 35px; letter-spacing: -1px; margin: 10px 0; color: #cda7ff; }
 .upgrade-option small { display: block; color: #a9b8d0; font-size: 11px; margin-top: 5px; line-height: 1.4; }
 .upgrade-icon { color: #cda7ff; font-size: 29px; width: 25px; text-align: center; font-weight: 900; }
 @media (max-height: 650px) { #ship-preview { display: none; } #upgrade-panel { align-items: flex-start; } .upgrade-option { min-height: 62px; margin: 6px 0; padding: 10px; } h2 { font-size: 27px; } .upgrade-card > p { margin: 6px 0 10px; } }
+
+#special-panel { position: absolute; inset: 0; padding: 150px 20px 20px; display: flex; align-items: center; justify-content: center; background: #080c1af5; overflow-y: auto; }
+#special-panel h2 { font-size: 27px; color: #ffce79; }
+#special-panel .upgrade-icon { color: #ffce79; font-size: 22px; }
+#special-panel .upgrade-option strong { font-size: 11px; }
+#special-panel .upgrade-option small { font-size: 10px; }
+#boss-hud { position: absolute; top: 153px; left: 24px; right: 24px; color: #ff8185; font-size: 8px; letter-spacing: 1px; pointer-events: none; }
+#boss-hud progress::-webkit-progress-value { background: #f16b71; }
+#boss-hud progress::-moz-progress-bar { background: #f16b71; }
+#perk-status { position: absolute; bottom: 8px; left: 14px; right: 14px; color: #a9c3dc; font-size: 8px; letter-spacing: .5px; pointer-events: none; text-align: center; }
+#level { right: 14px; font-size: 8px; letter-spacing: .6px; }
+@media (max-height: 650px) { #special-panel { align-items: flex-start; } #special-panel h2 { font-size: 23px; } }

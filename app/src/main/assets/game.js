@@ -32,6 +32,12 @@
     $('best').textContent = format(Math.max(best, game.score));
     $('sector').textContent = String(game.sector).padStart(2, '0');
     $('pilot-level').textContent = game.level;
+    $('sector-count').textContent = game.sectorKills + ' / ' + game.sectorGoal;
+    $('biome').textContent = MeteorSprites.themes[(game.sector - 1) % 6].name;
+    $('boss-hud').hidden = !game.boss || game.boss.dead;
+    if (game.boss) { $('boss-bar').max = game.boss.maxHp; $('boss-bar').value = game.boss.hp; }
+    const perks = MeteorEngine.PERKS.filter(p => game.perks[p.id]);
+    $('perk-status').textContent = perks.map(p => p.name + ' ' + game.perks[p.id]).join(' · ');
     for (const [name, value, max] of [['health', game.health, game.maxHealth], ['shield', game.shield, game.maxShield], ['xp', game.xp, game.xpNext]]) {
       $(name + '-bar').max = max; $(name + '-bar').value = value;
       $(name + '-text').textContent = value + ' / ' + max;
@@ -77,17 +83,41 @@
   }
   function showUpgrade() {
     release();
+    $('special-panel').hidden = true;
     $('upgrade-level').textContent = game.level;
-    const nextInterval = 0.1 + 0.28 * Math.pow(0.78, game.upgrades.rate + 1);
+    const nextInterval = 0.14 + 0.24 * Math.pow(0.88, game.upgrades.rate + 1);
     $('rate-description').textContent = (1 / game.fireInterval).toFixed(1) + ' → ' + (1 / nextInterval).toFixed(1) + ' disparos / s';
     $('damage-description').textContent = game.damage + ' → ' + (game.damage + 1) + ' de daño por disparo';
     $('upgrade-panel').hidden = false;
     $('pause').hidden = true;
   }
+  function showSpecial() {
+    release(); $('upgrade-panel').hidden = true; $('pause').hidden = true;
+    $('special-subtitle').textContent = 'Sector ' + game.sector + ' superado. Elige para entrar en el ' + (game.sector + 1) + '.';
+    $('special-options').replaceChildren();
+    for (const id of game.specialChoices) {
+      const perk = MeteorEngine.PERKS.find(p => p.id === id);
+      const button = document.createElement('button'); button.className = 'upgrade-option'; button.dataset.special = id;
+      const icon = document.createElement('span'); icon.className = 'upgrade-icon'; icon.textContent = '✦';
+      const text = document.createElement('span'), title = document.createElement('strong'), desc = document.createElement('small');
+      title.textContent = perk.name + ' · RANGO ' + (game.perks[id] + 1); desc.textContent = perk.text;
+      text.append(title, desc); button.append(icon, text);
+      button.addEventListener('click', () => {
+        if (!game.chooseSpecial(id)) return;
+        $('special-panel').hidden = true; lastTime = 0; release();
+        if (game.state === 'upgrade') showUpgrade();
+        else { $('pause').hidden = false; if (document.hidden) pause(); }
+        hud();
+      });
+      $('special-options').append(button);
+    }
+    $('special-panel').hidden = false;
+  }
   document.querySelectorAll('[data-upgrade]').forEach(button => button.addEventListener('click', () => {
     if (!game.chooseUpgrade(button.dataset.upgrade)) return;
     release(); lastTime = 0;
     if (game.state === 'upgrade') showUpgrade();
+    else if (game.state === 'special') { $('upgrade-panel').hidden = true; showSpecial(); }
     else {
       $('upgrade-panel').hidden = true;
       $('pause').hidden = false;
@@ -99,6 +129,7 @@
     if (game.state === 'paused') game.resume(); else game.start();
     previousState = 'playing'; lastTime = 0; particles = []; rings = []; hitFlash = 0; release();
     $('panel').hidden = true;
+    $('special-panel').hidden = true; $('upgrade-panel').hidden = true;
     $('pause').hidden = false;
     hud();
   });
@@ -177,9 +208,10 @@
   }
   function draw(dt) {
     const h = game.height;
-    ctx.fillStyle = '#060a19'; ctx.fillRect(0, 0, 360, h);
+    const theme = MeteorSprites.themes[(game.sector - 1) % 6];
+    ctx.fillStyle = theme.base; ctx.fillRect(0, 0, 360, h);
     const glow = ctx.createRadialGradient(270, h * 0.3, 0, 270, h * 0.3, 340);
-    glow.addColorStop(0, '#162249'); glow.addColorStop(1, '#060a19');
+    glow.addColorStop(0, theme.glow); glow.addColorStop(1, theme.base);
     ctx.fillStyle = glow; ctx.fillRect(0, 0, 360, h);
     for (const s of stars) {
       const y = (s.y + visualTime * 20 * s.depth) % (h + 10);
@@ -187,14 +219,44 @@
       ctx.fillStyle = '#b9d3ff'; ctx.fillRect(s.x, y, s.depth * 1.7, s.depth * 2.2);
     }
     ctx.globalAlpha = 1;
+    if (game.laserActive) {
+      ctx.fillStyle = '#d379ff55'; ctx.fillRect(game.player.x - 9, 145, 18, Math.max(0, game.player.y - 170));
+      ctx.fillStyle = '#f4dcff'; ctx.fillRect(game.player.x - 2, 145, 4, Math.max(0, game.player.y - 170));
+    }
+    if (game.aegisActive) {
+      ctx.strokeStyle = '#ffcd6f'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(game.player.x, game.player.y, 40, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (game.perks.wingmen) for (const sign of [-1, 1]) {
+      ctx.fillStyle = '#b2d8de'; ctx.fillRect(game.player.x + sign * 28 - 4, game.player.y - 8, 8, 14);
+      ctx.fillStyle = '#ffba67'; ctx.fillRect(game.player.x + sign * 28 - 2, game.player.y + 6, 4, 5);
+    }
     for (const b of game.bullets) {
-      ctx.fillStyle = '#4299a7'; ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y), 6, 15);
-      ctx.fillStyle = '#c4fff4'; ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y), 2, 11);
+      ctx.save(); ctx.translate(Math.round(b.x), Math.round(b.y)); ctx.rotate(Math.atan2(b.vx || 0, -(b.vy === undefined ? -550 : b.vy)));
+      ctx.fillStyle = b.boosted ? '#ffc578' : '#4299a7'; ctx.fillRect(-3, 0, 6, 15);
+      ctx.fillStyle = '#c4fff4'; ctx.fillRect(-1, 0, 2, 11); ctx.restore();
+    }
+    if (game.boss && !game.boss.dead) {
+      const b = game.boss, top = b.y - 90;
+      ctx.fillStyle = '#27212c'; ctx.fillRect(-20, top, 400, 180);
+      ctx.fillStyle = theme.rock; ctx.fillRect(-16, top + 5, 392, 166);
+      for (let i = 0; i < 11; i++) {
+        const x = i * 36 + 5, y = top + 25 + (i % 3) * 36;
+        ctx.fillStyle = '#171b27'; ctx.fillRect(x, y, 25, 18);
+        ctx.fillStyle = '#ffffff22'; ctx.fillRect(x, y + 18, 25, 3);
+        ctx.fillStyle = '#211a26'; ctx.fillRect(x + 6, y - 14, 4, 16);
+      }
+      const damage = 1 - b.hp / b.maxHp;
+      ctx.strokeStyle = '#ff9366'; ctx.lineWidth = 3;
+      for (let i = 0; i < Math.ceil(damage * 9); i++) {
+        const x = 25 + i * 37; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x - 12, top + 65); ctx.lineTo(x + 9, top + 110); ctx.lineTo(x, top + 180); ctx.stroke();
+      }
+      ctx.fillStyle = '#ff667d'; ctx.fillRect(0, top + 177, 360, 3);
+      if (b.flash > 0) { ctx.fillStyle = '#fff0be33'; ctx.fillRect(0, top, 360, 175); }
     }
     for (const m of game.meteors) {
       ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.rotate(m.angle);
       const cracks = m.hp === m.maxHp ? 0 : Math.min(3, Math.ceil((1 - m.hp / m.maxHp) * 3));
-      ctx.drawImage(MeteorSprites.rocks[m.variant][cracks], -m.radius, -m.radius, m.radius * 2, m.radius * 2);
+      ctx.drawImage(MeteorSprites.themedRocks[(game.sector - 1) % 6][m.variant][cracks], -m.radius, -m.radius, m.radius * 2, m.radius * 2);
       if (m.flash > 0) { ctx.globalAlpha = .5; ctx.fillStyle = '#fff3bb'; ctx.fillRect(-5, -5, 10, 10); }
       ctx.restore();
     }
@@ -212,7 +274,7 @@
       ctx.restore();
     }
     if (game.state !== 'over') drawShip(game.player.x, game.player.y);
-    const effectDt = ['paused', 'upgrade'].includes(game.state) ? 0 : dt;
+    const effectDt = ['paused', 'upgrade', 'special'].includes(game.state) ? 0 : dt;
     for (const p of particles) {
       p.x += p.vx * effectDt; p.y += p.vy * effectDt; p.life -= effectDt * 1.4;
       ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color;
@@ -231,7 +293,7 @@
   function frame(time) {
     const dt = lastTime ? Math.min((time - lastTime) / 1000, .0333) : 0;
     lastTime = time;
-    if (!['paused', 'upgrade'].includes(game.state)) visualTime += dt;
+    if (!['paused', 'upgrade', 'special'].includes(game.state)) visualTime += dt;
     if (game.state === 'playing') {
       const x = Number(keys.has('arrowright') || keys.has('d')) - Number(keys.has('arrowleft') || keys.has('a'));
       const y = Number(keys.has('arrowdown') || keys.has('s')) - Number(keys.has('arrowup') || keys.has('w'));
@@ -240,6 +302,7 @@
       effects();
       if (game.state === 'over' && previousState === 'playing') end();
       if (game.state === 'upgrade') showUpgrade();
+      if (game.state === 'special') showSpecial();
     }
     previousState = game.state;
     draw(dt); hud();

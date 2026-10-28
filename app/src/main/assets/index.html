@@ -24,13 +24,15 @@
       <label class="vital shield">ESCUDO <span id="shield-text">30 / 60</span><progress id="shield-bar" max="60" value="30" aria-label="Escudo"></progress></label>
       <label class="vital xp">XP · NIVEL <b id="pilot-level">1</b><span id="xp-text">0 / 12</span><progress id="xp-bar" max="12" value="0" aria-label="Experiencia"></progress></label>
     </div>
-    <div id="level">SECTOR <span id="sector">01</span></div>
+    <div id="level">SECTOR <span id="sector">01</span> · <span id="sector-count">0 / 40</span> · <span id="biome">HIERRO</span></div>
+    <div id="boss-hud" hidden><span>⚠ TITÁN · DESTRÚYELO ANTES DEL IMPACTO</span><progress id="boss-bar" max="100" value="100" aria-label="Vida del jefe"></progress></div>
+    <div id="perk-status"></div>
     <section id="panel" role="dialog" aria-modal="true" aria-labelledby="title">
       <div class="card">
         <div class="eyebrow" id="eyebrow">UN PILOTO. INFINITOS METEORITOS.</div>
         <canvas id="ship-preview" width="92" height="108" aria-hidden="true"></canvas>
         <h1 id="title">METEOR<br><em>DODGE</em></h1>
-        <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Destruye rocas, recoge XP y mejora tu nave.</p>
+        <p id="message">Arrastra para pilotar. Tu nave dispara sola.<br>Cada 40 rocas: nuevo sector y ventaja especial.<br>Jefe cada 8 sectores. ¡Destrúyelo a tiempo!</p>
         <div id="results" hidden><span id="final-score">0</span><small>PUNTOS</small><p id="record-message"></p></div>
         <button id="action" class="primary">DESPEGAR <span aria-hidden="true">↗</span></button>
         <p class="hint" id="hint">Sin conexión · Sin anuncios · Solo reflejos</p>
@@ -45,6 +47,15 @@
         <button class="upgrade-option" data-upgrade="damage"><span class="upgrade-icon">✦</span><span><strong>DAÑO</strong><small id="damage-description">+1 de daño por disparo</small></span><b>→</b></button>
         <button class="upgrade-option" data-upgrade="health"><span class="upgrade-icon">+</span><span><strong>VIDA</strong><small>+25 de vida máxima y recupera 25</small></span><b>→</b></button>
         <p class="hint">La partida está pausada mientras eliges.</p>
+      </div>
+    </section>
+    <section id="special-panel" role="dialog" aria-modal="true" aria-labelledby="special-title" hidden>
+      <div class="upgrade-card">
+        <div class="eyebrow">40 ROCAS · SECTOR COMPLETADO</div>
+        <h2 id="special-title">VENTAJA ESPECIAL</h2>
+        <p id="special-subtitle">Elige una ventaja para el siguiente sector.</p>
+        <div id="special-options"></div>
+        <p class="hint">Las ventajas duran esta partida y mejoran al repetirlas.</p>
       </div>
     </section>
     <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>

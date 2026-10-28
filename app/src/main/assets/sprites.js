@@ -66,5 +66,29 @@
       rocks[variant][damage] = sprite;
     }
   }
-  window.MeteorSprites = { ship, rocks };
+  const themes = [
+    { name: 'CINTURÓN DE HIERRO', glow: '#202b43', base: '#060a19', tint: [1, 1, 1], rock: '#65665b' },
+    { name: 'BRASAS', glow: '#4b231f', base: '#160c12', tint: [1.45, .65, .48], rock: '#99513f' },
+    { name: 'GLACIAR', glow: '#183d59', base: '#060e1b', tint: [.65, 1.18, 1.65], rock: '#527b99' },
+    { name: 'ESPORAS', glow: '#24442b', base: '#07130f', tint: [.8, 1.4, .65], rock: '#608742' },
+    { name: 'NEBULOSA', glow: '#422354', base: '#10091c', tint: [1.22, .72, 1.65], rock: '#85569a' },
+    { name: 'ARENAS SOLARES', glow: '#4a391e', base: '#151006', tint: [1.55, 1.2, .5], rock: '#9a813c' }
+  ];
+  const themedRocks = themes.map((theme, ti) => rocks.map(variants => variants.map(sprite => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 32;
+    const c = canvas.getContext('2d'); c.drawImage(sprite, 0, 0);
+    const img = c.getImageData(0, 0, 32, 32);
+    for (let i = 0; i < img.data.length; i += 4) {
+      for (let j = 0; j < 3; j++) img.data[i + j] = Math.min(255, img.data[i + j] * theme.tint[j]);
+    }
+    c.putImageData(img, 0, 0);
+    if (ti > 0) {
+      c.fillStyle = ['#c3c0a7', '#ed915a', '#a0e3ff', '#c8f88d', '#dfadff', '#ffdb77'][ti];
+      for (const [x, y] of [[8, 5], [24, 11], [6, 21]]) {
+        c.fillRect(x, y, ti % 2 ? 2 : 3, 2); c.fillRect(x + 1, y - 2, 1, 2);
+      }
+    }
+    return canvas;
+  })));
+  window.MeteorSprites = { ship, rocks, themes, themedRocks };
 })();

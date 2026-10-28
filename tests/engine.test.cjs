@@ -27,15 +27,15 @@ test('automatic fire follows cadence and pauses without firing', () => {
   const bullets = JSON.stringify(g.bullets); g.pause(); g.step(.05);
   assert.equal(JSON.stringify(g.bullets), bullets);
 });
-test('different rock sizes have 2, 4 and 7 hit points', () => {
+test('different rock sizes have 3, 6 and 10 hit points', () => {
   const small = new Game(() => 0).spawn(), mid = new Game(() => .4).spawn(), big = new Game(() => .99).spawn();
-  assert.deepEqual([small.hp, mid.hp, big.hp], [2, 4, 7]);
+  assert.deepEqual([small.hp, mid.hp, big.hp], [3, 6, 10]);
 });
 test('repeated shots crack and destroy a rock exactly once', () => {
   const g = make(), m = rock(g, { hp: 2, maxHp: 2, size: 1 });
   shoot(g, m); assert.equal(m.hp, 1); assert.equal(g.kills, 0); assert.ok(m.flash > 0);
   shoot(g, m); assert.equal(g.kills, 1); assert.equal(g.meteors.length, 0);
-  assert.equal(g.pickups.filter(p => p.type === 'xp').length, 2);
+  assert.equal(g.pickups.filter(p => p.type === 'xp').length, 1);
   g.destroy(m); assert.equal(g.kills, 1);
   assert.equal(g.drainEvents().filter(e => e.type === 'explode').length, 1);
 });
@@ -56,7 +56,7 @@ test('rock impact hurts and explodes without granting XP or kill rewards', () =>
   assert.equal(g.meteors.length, 0); assert.equal(g.pickups.length, 0); assert.equal(g.kills, 0);
 });
 test('XP homes toward the ship, is collected and pauses for a level choice', () => {
-  const g = make(); g.xp = 10;
+  const g = make(); g.xp = 78;
   g.pickups.push({ type: 'xp', x: 180, y: g.player.y - 28, vx: 0, vy: 0, value: 2, age: 1 });
   g.step(.05); assert.equal(g.state, 'upgrade'); assert.equal(g.level, 2); assert.equal(g.xp, 0);
   const time = g.time; g.step(.05); assert.equal(g.time, time);
@@ -64,10 +64,10 @@ test('XP homes toward the ship, is collected and pauses for a level choice', () 
   assert.equal(g.chooseUpgrade('damage'), true); assert.equal(g.damage, 2); assert.equal(g.state, 'playing');
 });
 test('all three upgrades work and XP overflow creates one choice per level', () => {
-  const g = make(); g.addXp(40); assert.equal(g.state, 'upgrade');
+  const g = make(); g.addXp(200); assert.equal(g.state, 'upgrade');
   const interval = g.fireInterval; g.chooseUpgrade('rate');
   assert.ok(g.fireInterval < interval); assert.equal(g.state, 'upgrade');
-  assert.equal(g.level, 3); assert.equal(g.xp, 8);
+  assert.equal(g.level, 3); assert.equal(g.xp, 10);
   g.health = 60; g.chooseUpgrade('health');
   assert.equal(g.maxHealth, 125); assert.equal(g.health, 85); assert.equal(g.state, 'playing');
   assert.equal(g.chooseUpgrade('health'), false);
@@ -81,10 +81,10 @@ test('shield drops are random, collectible and capped', () => {
   const other = make(); other.destroy(rock(other));
   assert.equal(other.pickups.filter(p => p.type === 'shield').length, 0);
 });
-test('sector difficulty increases independently of pilot level', () => {
+test('difficulty stays unchanged with elapsed time alone', () => {
   const g = make();
   for (let i = 0; i < 610; i++) { g.meteors = []; g.step(.05); }
-  assert.equal(g.sector, 3); assert.equal(g.level, 1); assert.ok(g.spawn().speed > 100);
+  assert.equal(g.sector, 1); assert.equal(g.level, 1);
 });
 test('swept collision detects crossings and rejects misses', () => {
   assert.equal(hit(0, -150, 0, 150, 20), true);
@@ -102,4 +102,108 @@ test('spent bullets, offscreen rocks and old pickups are cleaned up', () => {
   g.pickups.push({ type: 'shield', x: 20, y: 200, vx: 0, vy: 0, value: 20, age: 19 });
   g.step(.05); assert.equal(g.passed, 1); assert.equal(g.score, 10);
   assert.equal(g.bullets.length, 0); assert.equal(g.pickups.length, 0);
+});
+
+test('40 rewarded destructions unlock exactly three distinct special choices', () => {
+  const g = make();
+  for (let i = 0; i < 39; i++) g.destroy(rock(g));
+  g.checkProgress(); assert.equal(g.state, 'playing'); assert.equal(g.sectorKills, 39);
+  g.destroy(rock(g)); g.checkProgress();
+  assert.equal(g.state, 'special'); assert.equal(g.sector, 1);
+  assert.equal(g.specialChoices.length, 3); assert.equal(new Set(g.specialChoices).size, 3);
+  assert.equal(g.chooseSpecial('missing'), false);
+  const id = g.specialChoices[0]; assert.equal(g.chooseSpecial(id), true);
+  assert.equal(g.perks[id], 1); assert.equal(g.sector, 2); assert.equal(g.sectorKills, 0);
+  assert.equal(g.chooseSpecial(id), false);
+});
+test('unrewarded collisions and dodged rocks do not advance the sector', () => {
+  const g = make(); g.destroy(rock(g), false);
+  rock(g, { x: 30, y: 700 }); g.step(.05);
+  assert.equal(g.sectorKills, 0); assert.equal(g.state, 'playing');
+});
+test('XP is much slower and harder sectors increase meteor durability', () => {
+  const g = make(), a = rock(g); g.destroy(a);
+  assert.equal(g.pickups.filter(p => p.type === 'xp').reduce((sum, p) => sum + p.value, 0), a.size);
+  assert.equal(g.xpNext, 80);
+  g.addXp(12); assert.equal(g.level, 1);
+  g.sector = 5; const b = g.spawn(); assert.ok(b.hp > a.maxHp * 2);
+});
+test('special-choice pause freezes weapon and boss timers', () => {
+  const g = make(); g.sectorKills = 40; g.checkProgress();
+  const time = g.time, clock = g.weaponTime; g.step(.05);
+  assert.equal(g.time, time); assert.equal(g.weaponTime, clock);
+});
+test('sector eight requires a boss victory before the special reward', () => {
+  const g = make(); g.sector = 8; g.sectorKills = 40; g.checkProgress();
+  assert.equal(g.state, 'playing'); assert.ok(g.boss); assert.equal(g.meteors.length, 0);
+  const b = g.boss; g.checkProgress(); assert.equal(g.boss, b);
+  assert.equal(g.chooseSpecial('laser'), false);
+  g.damageBoss(b.hp); g.checkProgress(); assert.equal(g.state, 'special');
+  g.chooseSpecial(g.specialChoices[0]); assert.equal(g.sector, 9); assert.equal(g.boss, null);
+});
+test('boss spans every x position and kills through shields and invulnerability', () => {
+  for (const x of [26, 180, 334]) {
+    const g = make(); g.spawnBoss(); g.player.x = x; g.target.x = x;
+    g.health = 999; g.shield = 999; g.invulnerable = 10; g.perks.aegis = 1;
+    g.boss.y = g.player.y - 90 - g.player.radius;
+    g.step(.05); assert.equal(g.state, 'over'); assert.equal(g.health, 0);
+  }
+});
+test('boss can be shot at either side and is defeated before a lethal contact on the same frame', () => {
+  const g = make(); g.spawnBoss(); g.boss.hp = 1;
+  g.bullets.push({ x: 330, y: g.boss.y + 95, damage: 2 });
+  g.step(.05); assert.equal(g.boss.dead, true); assert.equal(g.state, 'special');
+});
+test('no regular meteor spawns during the boss fight', () => {
+  const g = make(); g.spawnBoss(); g.spawnClock = -100;
+  for (let i = 0; i < 20; i++) g.step(.05);
+  assert.equal(g.meteors.length, 0); assert.ok(g.boss.y > -90);
+});
+test('new weapons add diagonal, rear and drone projectiles with increasing power', () => {
+  const g = make(); g.perks.diagonal = 1; g.perks.rear = 1; g.perks.wingmen = 1; g.fire();
+  assert.equal(g.bullets.length, 6);
+  assert.equal(g.bullets.filter(b => b.vx !== 0).length, 2);
+  assert.equal(g.bullets.filter(b => b.vy > 0).length, 1);
+  const damage = g.bullets.find(b => b.vx > 0).damage;
+  g.perks.diagonal++; g.bullets = []; g.fire();
+  assert.ok(g.bullets.find(b => b.vx > 0).damage > damage);
+});
+test('laser damages aligned rocks and boss; misses rocks outside the beam', () => {
+  const g = make(); g.perks.laser = 1;
+  const a = rock(g, { x: 180 }), b = rock(g, { x: 70 });
+  g.fireClock = 100; g.step(.05);
+  assert.ok(a.hp < a.maxHp); assert.equal(b.hp, b.maxHp);
+  g.spawnBoss(); g.boss.y = 200; const hp = g.boss.hp;
+  g.step(.05); assert.ok(g.boss.hp < hp);
+});
+test('demolition shield destroys nearby rocks but turns off after its active window', () => {
+  const g = make(); g.perks.aegis = 1;
+  rock(g, { x: g.player.x + 35, y: g.player.y });
+  g.step(.05); assert.equal(g.kills, 1); assert.equal(g.health, 100);
+  g.weaponTime = 5; g.step(.05); assert.equal(g.aegisActive, false);
+});
+test('shield reactor regenerates without exceeding the cap', () => {
+  const g = make(); g.perks.reactor = 2; g.shield = 10;
+  for (let i = 0; i < 21; i++) g.step(.05);
+  assert.equal(g.shield, 12); g.shield = g.maxShield;
+  for (let i = 0; i < 21; i++) g.step(.05);
+  assert.equal(g.shield, g.maxShield);
+});
+test('overload boosts every fifth volley, not every shot', () => {
+  const g = make(); g.perks.critical = 1;
+  for (let i = 0; i < 5; i++) g.fire();
+  assert.equal(g.bullets[3].damage, 1); assert.equal(g.bullets[4].damage, 2);
+});
+test('a pending XP upgrade survives a sector-special choice', () => {
+  const g = make(); g.sectorKills = 40; g.checkProgress();
+  g.addXp(80); g.chooseSpecial(g.specialChoices[0]);
+  assert.equal(g.sector, 2); assert.equal(g.state, 'upgrade'); assert.equal(g.level, 2);
+});
+test('boss health leaves enough time for the starting gun at different screen heights', () => {
+  for (const height of [480, 640, 850]) {
+    const g = new Game(() => .5, height); g.start(); g.sector = 8; g.spawnBoss();
+    const available = (g.player.y - 13) / g.boss.speed;
+    const needed = g.boss.hp / (g.damage / g.fireInterval) + height / 550;
+    assert.ok(needed < available, 'Boss must be beatable while keeping the ship near its starting position');
+  }
 });
