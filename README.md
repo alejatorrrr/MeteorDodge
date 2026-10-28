@@ -105,3 +105,7 @@ Inicio y Game Over con las escenas pixel art suministradas, botones reales de de
 ## Versión 1.7
 
 Meteoros rápidos con rebotes laterales y polvo estelar, pequeños con velocidades más variadas y mayor resistencia por sector. Puntos abajo, atributos arriba. Hangar con cuatro naves adicionales: Estelar (3.000 puntos, estrella orbital), Fulgor (6.000, sobrecarga inicial), Tridente (10.000, diagonal inicial), Tempestad (15.000, ráfaga triple durante 10 s con recarga de 180 s). Desbloqueos por puntuación de una partida guardados localmente, selección persistente y ventajas propias al comenzar cada partida. La recarga se congela al pausar y al elegir mejoras.
+
+## Versión 1.8
+
+Inicio con 0/20 de escudo. Botín de escudo al 10 % (antes 22 %). Nueva ventaja Capacidad de escudo (+20 máximo, sin recarga); Reactor regenera sin ampliar capacidad. Impactos: pequeños 9 sin escudo o 21 con escudo, medianos 32, grandes 46. Pequeños: 42 % de apariciones normales. Meteoros sorpresa aproximadamente un 10 % más rápidos. Jefes escalados por daño y armamento, con margen según inversión en daño/cadencia; la primera batalla exige al menos dos elecciones ofensivas con el cañón básico, retirándose hasta el fondo. Los sistemas de armas especiales siguen aportando sus efectos.

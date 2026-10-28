@@ -28,7 +28,7 @@ test('automatic fire follows cadence and pauses without firing', () => {
   assert.equal(JSON.stringify(g.bullets), bullets);
 });
 test('different rock sizes have 3, 6 and 10 hit points', () => {
-  const small = new Game(() => 0).spawn(), mid = new Game(() => .4).spawn(), big = new Game(() => .99).spawn();
+  const small = new Game(() => 0).spawn(), mid = new Game(() => .5).spawn(), big = new Game(() => .99).spawn();
   assert.deepEqual([small.hp, mid.hp, big.hp], [3, 6, 10]);
 });
 test('repeated shots crack and destroy a rock exactly once', () => {
@@ -52,7 +52,7 @@ test('shield absorbs damage first, overflow reaches health and invulnerability p
 });
 test('rock impact hurts and explodes without granting XP or kill rewards', () => {
   const g = make(); rock(g, { y: g.player.y, size: 3 }); g.step(.05);
-  assert.equal(g.shield, 0); assert.equal(g.health, 90);
+  assert.equal(g.shield, 0); assert.equal(g.health, 54);
   assert.equal(g.meteors.length, 0); assert.equal(g.pickups.length, 0); assert.equal(g.kills, 0);
 });
 test('XP homes toward the ship, is collected and pauses for a level choice', () => {
@@ -73,11 +73,11 @@ test('all three upgrades work and XP overflow creates one choice per level', () 
   assert.equal(g.chooseUpgrade('health'), false);
 });
 test('shield drops are random, collectible and capped', () => {
-  const g = new Game(() => .1); g.start(); g.spawnClock = 100;
+  const g = new Game(() => .05); g.start(); g.spawnClock = 100;
   const m = rock(g); g.destroy(m);
   assert.equal(g.pickups.filter(p => p.type === 'shield').length, 1);
   g.pickups = [{ type: 'shield', x: g.player.x, y: g.player.y, vx: 0, vy: 0, age: 0, value: 20 }];
-  g.shield = 55; g.step(.05); assert.equal(g.shield, 60); assert.equal(g.pickups.length, 0);
+  g.shield = 15; g.step(.05); assert.equal(g.shield, 20); assert.equal(g.pickups.length, 0);
   const other = make(); other.destroy(rock(other));
   assert.equal(other.pickups.filter(p => p.type === 'shield').length, 0);
 });
@@ -199,17 +199,35 @@ test('a pending XP upgrade survives a sector-special choice', () => {
   g.addXp(80); g.chooseSpecial(g.specialChoices[0]);
   assert.equal(g.sector, 2); assert.equal(g.state, 'upgrade'); assert.equal(g.level, 2);
 });
-test('boss health leaves enough time for the starting gun at different screen heights', () => {
+test('first boss defeats underprepared basic ships, but two offensive upgrades allow victory', () => {
   for (const height of [480, 640, 850]) {
-    const g = new Game(() => .5, height); g.start(); g.sector = 8; g.spawnBoss();
-    const available = (g.player.y - 13) / g.boss.speed;
-    const needed = g.boss.hp / (g.damage / g.fireInterval) + height / 550;
-    assert.ok(needed < available, 'Boss must be beatable while keeping the ship near its starting position');
+    for(const choices of [[],['rate'],['damage'],['rate','rate'],['damage','damage'],['rate','damage']]) {
+      const g=new Game(()=>.5,height);g.start();
+      for(const choice of choices){g.state='upgrade';g.chooseUpgrade(choice);}
+      g.player.y=height-38;g.target={...g.player};g.sector=8;g.sectorKills=40;g.spawnBoss();
+      for(let i=0;i<900 && g.state==='playing';i++)g.step(.05);
+      assert.equal(Boolean(g.boss.dead),choices.length>=2,`height ${height}, upgrades ${choices}`);
+      if(choices.length<2)assert.equal(g.state,'over');
+    }
   }
+});
+test('shield starts empty and capacity is a selectable sector reward without a free refill',()=>{
+ const g=make();assert.equal(g.shield,0);assert.equal(g.maxShield,20);
+ g.state='special';g.specialChoices=['capacity'];g.chooseSpecial('capacity');
+ assert.equal(g.maxShield,40);assert.equal(g.shield,0);assert.equal(g.perks.capacity,1);
+ g.state='special';g.specialChoices=['reactor'];g.chooseSpecial('reactor');assert.equal(g.maxShield,40);
+});
+test('shield loot probability is ten percent and small meteor frequency is 42 percent',()=>{
+ let drops=0,small=0;
+ for(let i=0;i<100;i++){
+  const g=make();g.random=()=>(i+.5)/100;const m=g.spawn();if(m.size===1)small++;
+  g.destroy(m);drops+=g.pickups.filter(p=>p.type==='shield').length;
+ }
+ assert.equal(drops,10);assert.equal(small,42);
 });
 
 test('small rocks deal reduced health damage only when shields are empty', () => {
- for(const [shield,health] of [[0,93],[30,100],[5,87]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
+ for(const [shield,health] of [[0,91],[30,100],[5,84]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
 });
 test('rush meteors arrive without warning, faster, and pause freezes their timer', () => {
  const g=make();g.rushClock=.1;g.pause();g.step(.05);assert.equal(g.rushClock,.1);
@@ -237,7 +255,7 @@ test('rush meteors bounce on either side, emit dust and leave only at the bottom
 
 test('boss parts install once, repair and retain stats across sectors', () => {
  const g=make();g.sector=8;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
- assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,90);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
+ assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,50);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
  g.chooseSpecial(g.specialChoices[0]);assert.equal(g.parts.armor,1);g.start();assert.equal(g.parts.armor,0);
 });
 

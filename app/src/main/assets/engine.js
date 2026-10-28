@@ -17,7 +17,8 @@
     { id: 'rear', name: 'DISPARO TRASERO', text: 'Dispara también hacia atrás. Cada rango aumenta su daño.' },
     { id: 'aegis', name: 'ESCUDO DEMOLEDOR', text: 'Destruye rocas al contacto durante 4 s cada 20 s. +1 s por rango (máx. 12 s). No detiene al jefe.' },
     { id: 'wingmen', name: 'DRONES ESCOLTA', text: 'Dos drones añaden disparos frontales. Más rangos, más daño.' },
-    { id: 'reactor', name: 'REACTOR DE ESCUDO', text: '+20 de escudo máximo, recupera 20 y regenera 1 punto/s por rango.' },
+    { id: 'capacity', name: 'CAPACIDAD DE ESCUDO', text: '+20 de escudo máximo por rango. No recarga el escudo.' },
+    { id: 'reactor', name: 'REACTOR DE ESCUDO', text: 'Regenera 1 punto de escudo/s por rango, hasta el máximo disponible.' },
     { id: 'critical', name: 'SOBRECARGA', text: 'Cada quinto disparo causa daño doble. Cada rango añade otro multiplicador.' }
   ];
   const SHIPS = [
@@ -47,7 +48,7 @@
       this.weaponTime = 0; this.laserActive = false; this.aegisActive = false;
       this.volleyCount = 0; this.regenClock = 0;
       this.level = 1; this.xp = 0; this.xpNext = 80;
-      this.maxHealth = 100; this.health = 100; this.maxShield = 60; this.shield = 30;
+      this.maxHealth = 100; this.health = 100; this.maxShield = 20; this.shield = 0;
       this.damage = 1; this.fireInterval = 0.38; this.fireClock = 0;
       this.invulnerable = 0; this.spawnClock = 0.6;
       this.upgrades = { rate: 0, damage: 0, health: 0 };
@@ -73,7 +74,9 @@
       this.target.y = clamp(this.target.y + delta, 158, height - 38);
     }
     spawn() {
-      const radius = 13 + this.random() * 23;
+      const roll = this.random();
+      // 42% small (previously 30%), 30% medium and 28% large.
+      const radius = roll < .42 ? 13 + roll / .42 * 7 : roll < .72 ? 20 + (roll - .42) / .30 * 8 : 28 + (roll - .72) / .28 * 8;
       const size = radius < 20 ? 1 : radius < 28 ? 2 : 3;
       const hp = Math.ceil([0, 3, 6, 10][size] * (1 + (this.sector - 1) * 0.36 + (this.sector - 1) ** 2 * 0.012));
       const m = {
@@ -94,7 +97,7 @@
       const y = edge === 0 ? -20 : 20 + this.random() * Math.max(0, this.player.y - 110);
       const dx = this.player.x - x, dy = this.player.y - y;
       const distance = Math.hypot(dx, dy);
-      const velocity = 490 + Math.min(210, this.sector * 14);
+      const velocity = 540 + Math.min(230, this.sector * 15);
       Object.assign(m, { x, y, radius: 16, size: 1, hp: 3 + this.sector,
         maxHp: 3 + this.sector, speed: dy / distance * velocity,
         drift: dx / distance * velocity, rush: true });
@@ -112,7 +115,7 @@
         this.pickups.push({ type: 'xp', x: m.x, y: m.y,
           vx: Math.cos(angle) * 45, vy: Math.sin(angle) * 40, value: 1, age: 0 });
       }
-      if (this.random() < 0.22) this.pickups.push({ type: 'shield', x: m.x,
+      if (this.random() < 0.10) this.pickups.push({ type: 'shield', x: m.x,
         y: m.y, vx: 0, vy: 35, value: 20, age: 0 });
     }
     hurt(amount) {
@@ -171,7 +174,7 @@
         this.checkProgress(); return true;
       }
       this.perks[id]++;
-      if (id === 'reactor') { this.maxShield += 20; this.shield = Math.min(this.maxShield, this.shield + 20); }
+      if (id === 'capacity') this.maxShield += 20;
       this.sector++; this.sectorKills = 0; this.pendingSpecial = false;
       this.specialChoices = []; this.boss = null; this.meteors = []; this.bullets = [];
       this.weaponTime = 0; this.spawnClock = 1; this.state = 'playing';
@@ -179,13 +182,16 @@
     }
     spawnBoss() {
       this.meteors = []; this.bullets = [];
-      // About 30 seconds to the bottom. HP is based on current theoretical DPS,
-      // leaving a margin for travel time and movement; the fight is still lethal.
+      // Damage sets the scale; cadence remains a real advantage rather than
+      // being cancelled by current-DPS scaling. Two offensive choices open
+      // the damage window. Additional investment improves the margin.
       const p = this.perks;
-      const volley = 1 + (p.diagonal ? 2 * (.55 + .15 * p.diagonal) : 0) + p.wingmen;
-      const dps = this.damage / this.fireInterval * volley * (1 + p.critical * .2)
-        + this.damage * p.laser * 3 * 1.2 / 7;
-      const hp = Math.max(45, Math.ceil(dps * 20 * (1 + (this.sector / 8 - 1) * .08)));
+      const volley = (1 + (p.diagonal ? 2 * (.55 + .15 * p.diagonal) : 0) + p.wingmen) * (1 + p.critical * .2);
+      const investment = this.upgrades.damage + this.upgrades.rate;
+      const preparation = 1 + Math.min(2, Math.max(0, investment - 1) * .16);
+      const support = p.laser * 3 * 1.2 / 7 * .38;
+      const hp = Math.ceil(this.damage * (volley + support) * 95
+        * (1 + Math.max(0, this.sector / 8 - 1) * .08) / preparation);
       this.boss = { x: 180, y: -90, width: 420, height: 180,
         hp, maxHp: hp, speed: Math.max(5, (this.height - 45) / 32), flash: 0 };
       this.events.push({ type: 'boss-warning', x: 180, y: 200 });
@@ -306,7 +312,7 @@
         if (this.aegisActive && !m.dead && Math.hypot(m.x - this.player.x, m.y - this.player.y) <= m.radius + 40) { this.destroy(m); continue; }
         if (!m.dead && hit(m.oldX - px, m.oldY - py,
           m.x - this.player.x, m.y - this.player.y, this.player.radius + m.radius * 0.8)) {
-          if (this.hurt(m.size === 1 && this.shield === 0 ? 7 : [0, 18, 28, 40][m.size])) this.destroy(m, false);
+          if (this.hurt(m.size === 1 && this.shield === 0 ? 9 : [0, 21, 32, 46][m.size])) this.destroy(m, false);
           if (this.state === 'over') break;
         }
       }

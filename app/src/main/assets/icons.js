@@ -23,6 +23,7 @@ window.MeteorIcons = {
       case 'rear': ship(12,2);beam(11,13,6);path([[7,18],[17,18],[12,24]],'#ffa347');break;
       case 'aegis': shield();for(const [x,y] of [[0,0],[20,19],[0,18]]){rect(x,y,4,4,'#db9575');rect(x+1,y,2,2,'#ffe5ac');}break;
       case 'wingmen': ship(5,7);ship(19,7);beam(4,0,4);beam(18,0,4);break;
+      case 'capacity': shield();rect(14,13,9,3,'#e7ffff');rect(17,10,3,9,'#e7ffff');break;
       case 'reactor': shield();path([[12,5],[8,13],[12,13],[10,20],[17,10],[13,10],[16,5]],'#ffe792');break;
       case 'critical': burst();rect(10,5,4,9,'#fff');rect(10,16,4,3,'#fff');break;
       case 'cannon': for(const x of [4,15]){rect(x,3,5,16,'#5876a6');beam(x+1,0,12);rect(x-1,17,7,5,'#bdd9f5');}break;
