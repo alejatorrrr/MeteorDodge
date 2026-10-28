@@ -31,7 +31,7 @@
       this.meteors = []; this.bullets = []; this.pickups = []; this.events = [];
       this.time = 0; this.passed = 0; this.kills = 0; this.score = 0;
       this.sector = 1; this.sectorKills = 0; this.sectorGoal = 40;
-      this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13; this.rushWarning = null;
+      this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13;
       this.boss = null; this.specialChoices = []; this.pendingSpecial = false;
       this.perks = Object.fromEntries(PERKS.map(p => [p.id, 0]));
       this.weaponTime = 0; this.laserActive = false; this.aegisActive = false;
@@ -68,6 +68,20 @@
         variant: (Math.floor(this.random() * 3) + this.sector - 1) % 3
       };
       this.meteors.push(m); return m;
+    }
+    spawnRush() {
+      const m = this.spawn();
+      const edge = Math.min(2, Math.floor(this.random() * 3));
+      const x = edge === 0 ? 20 + this.random() * 320 : edge === 1 ? -20 : 380;
+      // Side entries are always ahead of the ship, never from below/behind it.
+      const y = edge === 0 ? -20 : 20 + this.random() * Math.max(0, this.player.y - 110);
+      const dx = this.player.x - x, dy = this.player.y - y;
+      const distance = Math.hypot(dx, dy);
+      const velocity = 490 + Math.min(210, this.sector * 14);
+      Object.assign(m, { x, y, radius: 16, size: 1, hp: 3 + this.sector,
+        maxHp: 3 + this.sector, speed: dy / distance * velocity,
+        drift: dx / distance * velocity, rush: true });
+      return m;
     }
     destroy(m, reward = true) {
       if (m.dead) return;
@@ -147,7 +161,7 @@
       this.checkProgress(); return true;
     }
     spawnBoss() {
-      this.meteors = []; this.bullets = []; this.rushWarning = null;
+      this.meteors = []; this.bullets = [];
       // About 30 seconds to the bottom. HP is based on current theoretical DPS,
       // leaving a margin for travel time and movement; the fight is still lethal.
       const p = this.perks;
@@ -202,13 +216,9 @@
       }
       if (!this.boss && this.sectorKills < this.sectorGoal) {
         this.rushClock -= dt;
-        if (!this.rushWarning && this.rushClock <= 0) this.rushWarning = { x: this.player.x, time: .85 };
-        if (this.rushWarning) {
-          this.rushWarning.time -= dt;
-          if (this.rushWarning.time <= 0) {
-            const m = this.spawn(); Object.assign(m, { x: this.rushWarning.x, radius: 16, size: 1, hp: 3 + this.sector, maxHp: 3 + this.sector, speed: 420 + Math.min(180, this.sector * 12), drift: 0, rush: true });
-            this.rushWarning = null; this.rushClock = 12 + this.random() * 10;
-          }
+        if (this.rushClock <= 0) {
+          this.spawnRush();
+          this.rushClock = 12 + this.random() * 10;
         }
       }
       this.spawnClock -= dt;
@@ -219,7 +229,7 @@
       for (const m of this.meteors) {
         m.oldX = m.x; m.oldY = m.y;
         m.y += m.speed * dt;
-        m.x = clamp(m.x + m.drift * dt, m.radius, 360 - m.radius);
+        m.x = m.rush ? m.x + m.drift * dt : clamp(m.x + m.drift * dt, m.radius, 360 - m.radius);
         m.angle += m.spin * dt; m.flash = Math.max(0, m.flash - dt);
       }
       for (const b of this.bullets) {
@@ -270,7 +280,7 @@
       this.bullets = this.bullets.filter(b => !b.dead && b.y > -40 && b.y < this.height + 40 && b.x > -40 && b.x < 400);
       this.meteors = this.meteors.filter(m => {
         if (m.dead) return false;
-        if (m.y - m.radius > this.height) { this.passed++; return false; }
+        if (m.y - m.radius > this.height || (m.rush && ((m.drift < 0 && m.x < -40) || (m.drift > 0 && m.x > 400)))) { this.passed++; return false; }
         return true;
       });
       if (this.state === 'playing') {

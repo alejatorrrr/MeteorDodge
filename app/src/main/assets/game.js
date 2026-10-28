@@ -95,6 +95,8 @@
   function showSpecial() {
     release(); $('upgrade-panel').hidden = true; $('pause').hidden = true;
     $('special-subtitle').textContent = 'Sector ' + game.sector + ' superado. Elige para entrar en el ' + (game.sector + 1) + '.';
+    $('workshop-art').hidden = !game.workshop;
+    $('special-panel').classList.toggle('workshop', game.workshop);
     $('special-title').textContent = game.workshop ? 'TALLER ESPACIAL' : 'VENTAJA ESPECIAL';
     if (game.workshop) $('special-subtitle').textContent = 'Botín del jefe: elige una pieza para instalar. Reparación de vida incluida.';
     $('special-options').replaceChildren();
@@ -273,9 +275,8 @@
       ctx.fillStyle = '#ff667d'; ctx.fillRect(0, top + 177, 360, 3);
       if (b.flash > 0) { ctx.fillStyle = '#fff0be33'; ctx.fillRect(0, top, 360, 175); }
     }
-    if (game.rushWarning) { ctx.globalAlpha=.35 + Math.sin(visualTime*25)*.15; ctx.fillStyle='#ff647a'; ctx.fillRect(game.rushWarning.x-18,155,36,h-155); ctx.globalAlpha=1; ctx.fillStyle='#ffe19a'; ctx.fillRect(game.rushWarning.x-6,165,12,18); }
     for (const m of game.meteors) {
-      if (m.rush) { ctx.fillStyle=theme.rock; ctx.globalAlpha=.5; ctx.fillRect(m.x-7,m.y-85,14,70); ctx.fillStyle='#d7f8ff'; ctx.fillRect(m.x-2,m.y-50,4,40); ctx.globalAlpha=1; }
+      if (m.rush) { ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(Math.atan2(m.speed,m.drift)-Math.PI/2); ctx.fillStyle=theme.rock; ctx.globalAlpha=.5; ctx.fillRect(-7,-85,14,70); ctx.fillStyle='#d7f8ff'; ctx.fillRect(-2,-50,4,40); ctx.restore(); }
       ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.rotate(m.angle);
       const cracks = m.hp === m.maxHp ? 0 : Math.min(3, Math.ceil((1 - m.hp / m.maxHp) * 3));
       ctx.drawImage(MeteorSprites.themedRocks[(game.sector - 1) % 6][m.variant][cracks], -m.radius, -m.radius, m.radius * 2, m.radius * 2);

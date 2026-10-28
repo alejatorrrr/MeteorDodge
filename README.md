@@ -93,3 +93,7 @@ El workflow necesita que GitHub Actions esté habilitado. Para subirlo mediante 
 Sector 1 de roca clásica; modelos de magma, cristales de hielo, esporas orgánicas, hierro remachado y arenisca solar. Los pequeños son más rápidos: 7 de daño sin escudo, 18 con escudo (el exceso atraviesa a la vida). Cada 12–22 segundos puede aparecer un meteoro veloz, precedido de 0,85 s de aviso de trayectoria.
 
 Después de cada jefe se abre el taller: elige entre tres piezas de su botín. Cañones (+2 daño), alas blindadas (+30 escudo y recarga) o motores (+90 respuesta táctil y +45 velocidad de teclado). Cada nueva pieza mejora su ranura y cambia su apariencia. El taller repara la vida. Después eliges la ventaja especial del sector. Las piezas duran esa partida.
+
+## Versión 1.5
+
+Meteoros rápidos sin alerta, aproximadamente un 17 % más veloces. Llegan desde arriba o los laterales, siempre por delante de la nave, siguiendo una trayectoria fija sin perseguirla. Su estela sigue la dirección del movimiento. El taller muestra la ilustración pixel art del hangar, incluida en la aplicación para funcionar sin conexión, con las tres piezas accesibles mediante desplazamiento en pantallas pequeñas. Verificación: 35 pruebas de mecánicas y prueba de interfaz móvil.

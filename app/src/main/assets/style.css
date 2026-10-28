@@ -88,3 +88,9 @@ h2 { font-weight: 400; font-size: 24px; line-height: 1.5; letter-spacing: -1px; 
 .logo-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .logo-art { position: relative; display: block; width: 100%; height: 0; padding-bottom: 34.524%; overflow: hidden; }
 .logo-art img { position: absolute; max-width: none; width: 152.381%; height: auto; left: -22.619%; top: 0; }
+
+/* The hangar is part of the workshop only; small screens scroll all choices. */
+#special-panel.workshop { padding: 20px 16px 28px; align-items: flex-start; background: #03081afc; }
+#special-panel.workshop .upgrade-card { max-width: 520px; margin: auto 0; }
+#special-panel.workshop .eyebrow { display: none; }
+#workshop-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; margin: 14px 0; border: 1px solid #4478a7; box-shadow: 0 0 18px #1d99c133; image-rendering: pixelated; }

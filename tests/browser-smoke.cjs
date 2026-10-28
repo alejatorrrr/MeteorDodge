@@ -55,7 +55,19 @@ const root = path.join(__dirname, '../app/src/main/assets');
   await page.locator('#boss-hud').waitFor({state:'visible'});
   await page.evaluate(()=>{__game.boss.y=200;__game.boss.hp=1;__game.bullets.push({x:180,y:300,damage:2});});
   await page.locator('#special-panel').waitFor({state:'visible'});
+  assert.equal(await page.locator('#workshop-art').isVisible(),true);
+  await page.locator('#workshop-art').evaluate(img=>img.decode());
+  for (const size of [{width:320,height:568},{width:393,height:851}]) {
+    await page.setViewportSize(size);
+    await page.locator('[data-special]').last().scrollIntoViewIfNeeded();
+    assert.ok((await page.locator('[data-special]').last().boundingBox()).height>=44);
+    await page.locator('#special-title').scrollIntoViewIfNeeded();
+    const art=await page.locator('#workshop-art').boundingBox();
+    assert.ok(art.width>250 && art.height>140 && art.x>=0 && art.x+art.width<=size.width);
+  }
+  await page.screenshot({path:'/tmp/MeteorDodge-taller.png'});
   await page.locator('[data-special]').first().click();
+  assert.equal(await page.locator('#workshop-art').isVisible(),false);
   await page.locator('[data-special]').first().click();
   assert.equal(await page.evaluate(()=>__game.sector),9);
   await page.evaluate(()=>{const g=__game;g.invulnerable=0;g.perks.aegis=0;g.shield=0;g.health=1;const m=g.spawn();Object.assign(m,{x:g.player.x,y:g.player.y,speed:0,drift:0,hp:99,maxHp:99,size:3});});

@@ -211,9 +211,30 @@ test('boss health leaves enough time for the starting gun at different screen he
 test('small rocks deal reduced health damage only when shields are empty', () => {
  for(const [shield,health] of [[0,93],[30,100],[5,87]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
 });
-test('rush warning precedes a fast meteor and pause freezes it', () => {
- const g=make();g.rushClock=0;g.step(.05);assert.ok(g.rushWarning);g.pause();const t=g.rushWarning.time;g.step(.05);assert.equal(g.rushWarning.time,t);g.resume();for(let i=0;i<18;i++)g.step(.05);assert.ok(g.meteors.some(m=>m.rush && m.speed>400));
+test('rush meteors arrive without warning, faster, and pause freezes their timer', () => {
+ const g=make();g.rushClock=.1;g.pause();g.step(.05);assert.equal(g.rushClock,.1);
+ g.resume();g.step(.05);g.step(.05);const m=g.meteors.find(m=>m.rush);
+ assert.ok(m);assert.ok(Math.hypot(m.speed,m.drift)>490);assert.equal(g.rushWarning,undefined);
 });
+test('rush trajectories enter from top, left and right, never behind; travel is straight', () => {
+ for(const value of [.1,.5,.9]) {
+  const g=make();g.random=()=>value;const m=g.spawnRush();
+  assert.ok(m.y<g.player.y);assert.ok(m.speed>0);
+  if(value===.1) assert.equal(m.y,-20);
+  if(value===.5) assert.equal(m.x,-20);
+  if(value===.9) assert.equal(m.x,380);
+  const x=m.x,y=m.y,vx=m.drift,vy=m.speed;g.spawnClock=100;g.rushClock=100;g.fireClock=100;
+  g.move(26,200);g.step(.05);
+  assert.equal(m.x,x+vx*.05);assert.equal(m.y,y+vy*.05);
+ }
+});
+test('rush meteors leaving either side are removed', () => {
+ for(const sign of [-1,1]) {
+  const g=make();const m=g.spawnRush();Object.assign(m,{x:sign<0?-45:405,y:250,drift:sign*500,speed:10});
+  g.step(.05);assert.ok(!g.meteors.includes(m));assert.equal(g.passed,1);
+ }
+});
+
 test('boss parts install once, repair and retain stats across sectors', () => {
  const g=make();g.sector=8;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
  assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,90);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
