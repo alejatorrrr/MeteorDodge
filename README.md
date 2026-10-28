@@ -87,3 +87,9 @@ Abre `http://localhost:8000`. La vista previa no sustituye la prueba del APK en 
 - `.github/workflows/android.yml`: pruebas, compilación, Android Lint y publicación del APK como artefacto.
 
 El workflow necesita que GitHub Actions esté habilitado. Para subirlo mediante una integración o token de GitHub se necesitan permisos de escritura en **Contents** y **Workflows** para este repositorio. Nunca incluyas tokens en archivos del proyecto.
+
+## Versión 1.4
+
+Sector 1 de roca clásica; modelos de magma, cristales de hielo, esporas orgánicas, hierro remachado y arenisca solar. Los pequeños son más rápidos: 7 de daño sin escudo, 18 con escudo (el exceso atraviesa a la vida). Cada 12–22 segundos puede aparecer un meteoro veloz, precedido de 0,85 s de aviso de trayectoria.
+
+Después de cada jefe se abre el taller: elige entre tres piezas de su botín. Cañones (+2 daño), alas blindadas (+30 escudo y recarga) o motores (+90 respuesta táctil y +45 velocidad de teclado). Cada nueva pieza mejora su ranura y cambia su apariencia. El taller repara la vida. Después eliges la ventaja especial del sector. Las piezas duran esa partida.

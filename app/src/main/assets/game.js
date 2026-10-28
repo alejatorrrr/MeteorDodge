@@ -95,18 +95,21 @@
   function showSpecial() {
     release(); $('upgrade-panel').hidden = true; $('pause').hidden = true;
     $('special-subtitle').textContent = 'Sector ' + game.sector + ' superado. Elige para entrar en el ' + (game.sector + 1) + '.';
+    $('special-title').textContent = game.workshop ? 'TALLER ESPACIAL' : 'VENTAJA ESPECIAL';
+    if (game.workshop) $('special-subtitle').textContent = 'Botín del jefe: elige una pieza para instalar. Reparación de vida incluida.';
     $('special-options').replaceChildren();
     for (const id of game.specialChoices) {
-      const perk = MeteorEngine.PERKS.find(p => p.id === id);
+      const perk = game.workshop ? { name: {cannon:'CAÑONES DE PLASMA',armor:'ALAS BLINDADAS',engine:'MOTORES IÓNICOS'}[id], text: {cannon:'+2 de daño. Instala cañones laterales.',armor:'+30 de escudo máximo y recarga. Cambia las alas.',engine:'+90 de velocidad de respuesta y +45 de velocidad con teclado. Nuevos propulsores.'}[id] } : MeteorEngine.PERKS.find(p => p.id === id);
       const button = document.createElement('button'); button.className = 'upgrade-option'; button.dataset.special = id;
       const icon = document.createElement('span'); icon.className = 'upgrade-icon'; icon.textContent = '✦';
       const text = document.createElement('span'), title = document.createElement('strong'), desc = document.createElement('small');
-      title.textContent = perk.name + ' · RANGO ' + (game.perks[id] + 1); desc.textContent = perk.text;
+      title.textContent = perk.name + ' · RANGO ' + ((game.workshop ? game.parts[id] : game.perks[id]) + 1); desc.textContent = perk.text;
       text.append(title, desc); button.append(icon, text);
       button.addEventListener('click', () => {
         if (!game.chooseSpecial(id)) return;
         $('special-panel').hidden = true; lastTime = 0; release();
-        if (game.state === 'upgrade') showUpgrade();
+        if (game.state === 'special') showSpecial();
+        else if (game.state === 'upgrade') showUpgrade();
         else { $('pause').hidden = false; if (document.hidden) pause(); }
         hud();
       });
@@ -205,6 +208,9 @@
     ctx.fillStyle = '#ed6933'; ctx.fillRect(-5, 21, 10, 8 + flame * 3);
     ctx.fillStyle = '#ffdb69'; ctx.fillRect(-2, 21, 4, 5 + flame * 2);
     ctx.drawImage(MeteorSprites.ship, -23, -27, 46, 54);
+    if (game.parts.cannon) { ctx.fillStyle = '#c3edff'; ctx.fillRect(-18,-22,5,22); ctx.fillRect(13,-22,5,22); ctx.fillStyle='#eaa7ff'; ctx.fillRect(-17,-24,3,5); ctx.fillRect(14,-24,3,5); }
+    if (game.parts.armor) { ctx.fillStyle='#55d4c8'; ctx.fillRect(-25,0,9,16); ctx.fillRect(16,0,9,16); ctx.fillStyle='#d5fff2'; ctx.fillRect(-25,0,9,3); ctx.fillRect(16,0,9,3); }
+    if (game.parts.engine) { ctx.fillStyle='#4478c4'; ctx.fillRect(-16,14,7,13); ctx.fillRect(9,14,7,13); ctx.fillStyle='#aef6ff'; ctx.fillRect(-14,27,3,8+flame*2); ctx.fillRect(11,27,3,8+flame*2); }
     ctx.restore();
   }
   function draw(dt) {
@@ -267,7 +273,9 @@
       ctx.fillStyle = '#ff667d'; ctx.fillRect(0, top + 177, 360, 3);
       if (b.flash > 0) { ctx.fillStyle = '#fff0be33'; ctx.fillRect(0, top, 360, 175); }
     }
+    if (game.rushWarning) { ctx.globalAlpha=.35 + Math.sin(visualTime*25)*.15; ctx.fillStyle='#ff647a'; ctx.fillRect(game.rushWarning.x-18,155,36,h-155); ctx.globalAlpha=1; ctx.fillStyle='#ffe19a'; ctx.fillRect(game.rushWarning.x-6,165,12,18); }
     for (const m of game.meteors) {
+      if (m.rush) { ctx.fillStyle=theme.rock; ctx.globalAlpha=.5; ctx.fillRect(m.x-7,m.y-85,14,70); ctx.fillStyle='#d7f8ff'; ctx.fillRect(m.x-2,m.y-50,4,40); ctx.globalAlpha=1; }
       ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.rotate(m.angle);
       const cracks = m.hp === m.maxHp ? 0 : Math.min(3, Math.ceil((1 - m.hp / m.maxHp) * 3));
       ctx.drawImage(MeteorSprites.themedRocks[(game.sector - 1) % 6][m.variant][cracks], -m.radius, -m.radius, m.radius * 2, m.radius * 2);
@@ -311,7 +319,7 @@
     if (game.state === 'playing') {
       const x = Number(keys.has('arrowright') || keys.has('d')) - Number(keys.has('arrowleft') || keys.has('a'));
       const y = Number(keys.has('arrowdown') || keys.has('s')) - Number(keys.has('arrowup') || keys.has('w'));
-      if (x || y) game.move(game.target.x + x * 290 * dt, game.target.y + y * 290 * dt);
+      if (x || y) game.move(game.target.x + x * (290 + game.parts.engine * 45) * dt, game.target.y + y * (290 + game.parts.engine * 45) * dt);
       game.step(dt);
       effects();
       if (game.state === 'over' && previousState === 'playing') end();

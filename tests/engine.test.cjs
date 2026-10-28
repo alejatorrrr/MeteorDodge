@@ -139,7 +139,7 @@ test('sector eight requires a boss victory before the special reward', () => {
   const b = g.boss; g.checkProgress(); assert.equal(g.boss, b);
   assert.equal(g.chooseSpecial('laser'), false);
   g.damageBoss(b.hp); g.checkProgress(); assert.equal(g.state, 'special');
-  g.chooseSpecial(g.specialChoices[0]); assert.equal(g.sector, 9); assert.equal(g.boss, null);
+  assert.equal(g.workshop, true); g.chooseSpecial('cannon'); assert.equal(g.damage, 3); g.chooseSpecial(g.specialChoices[0]); assert.equal(g.sector, 9); assert.equal(g.boss, null);
 });
 test('boss spans every x position and kills through shields and invulnerability', () => {
   for (const x of [26, 180, 334]) {
@@ -206,4 +206,16 @@ test('boss health leaves enough time for the starting gun at different screen he
     const needed = g.boss.hp / (g.damage / g.fireInterval) + height / 550;
     assert.ok(needed < available, 'Boss must be beatable while keeping the ship near its starting position');
   }
+});
+
+test('small rocks deal reduced health damage only when shields are empty', () => {
+ for(const [shield,health] of [[0,93],[30,100],[5,87]]) {const g=make();g.shield=shield;rock(g,{x:g.player.x,y:g.player.y,size:1});g.step(.05);assert.equal(g.health,health);}
+});
+test('rush warning precedes a fast meteor and pause freezes it', () => {
+ const g=make();g.rushClock=0;g.step(.05);assert.ok(g.rushWarning);g.pause();const t=g.rushWarning.time;g.step(.05);assert.equal(g.rushWarning.time,t);g.resume();for(let i=0;i<18;i++)g.step(.05);assert.ok(g.meteors.some(m=>m.rush && m.speed>400));
+});
+test('boss parts install once, repair and retain stats across sectors', () => {
+ const g=make();g.sector=8;g.sectorKills=40;g.spawnBoss();g.damageBoss(g.boss.hp);g.checkProgress();g.health=10;
+ assert.equal(g.workshop,true);g.chooseSpecial('armor');assert.equal(g.maxShield,90);assert.equal(g.health,100);assert.equal(g.parts.armor,1);assert.equal(g.workshop,false);
+ g.chooseSpecial(g.specialChoices[0]);assert.equal(g.parts.armor,1);g.start();assert.equal(g.parts.armor,0);
 });

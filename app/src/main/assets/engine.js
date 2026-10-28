@@ -31,6 +31,7 @@
       this.meteors = []; this.bullets = []; this.pickups = []; this.events = [];
       this.time = 0; this.passed = 0; this.kills = 0; this.score = 0;
       this.sector = 1; this.sectorKills = 0; this.sectorGoal = 40;
+      this.parts = { cannon: 0, armor: 0, engine: 0 }; this.workshop = false; this.workshopDue = false; this.rushClock = 13; this.rushWarning = null;
       this.boss = null; this.specialChoices = []; this.pendingSpecial = false;
       this.perks = Object.fromEntries(PERKS.map(p => [p.id, 0]));
       this.weaponTime = 0; this.laserActive = false; this.aegisActive = false;
@@ -61,7 +62,7 @@
       const m = {
         x: radius + this.random() * (360 - 2 * radius), y: -radius - 4,
         radius, size, hp, maxHp: hp, flash: 0,
-        speed: 72 + Math.min(this.sector - 1, 24) * 9 + this.random() * 35,
+        speed: (size === 1 ? 105 : 72) + Math.min(this.sector - 1, 24) * 9 + this.random() * 35,
         drift: (this.random() - 0.5) * 22,
         angle: this.random() * Math.PI * 2, spin: (this.random() - 0.5) * 0.7,
         variant: (Math.floor(this.random() * 3) + this.sector - 1) % 3
@@ -116,6 +117,9 @@
     }
     checkProgress() {
       if (this.state !== 'playing') return;
+      if (this.workshopDue) {
+        this.workshop = true; this.state = 'special'; this.specialChoices = ['cannon', 'armor', 'engine']; return;
+      }
       if (this.pendingSpecial || (this.sectorKills >= this.sectorGoal && this.sector % 8 !== 0)) {
         this.pendingSpecial = true;
         const pool = PERKS.slice(); this.specialChoices = [];
@@ -127,6 +131,14 @@
     }
     chooseSpecial(id) {
       if (this.state !== 'special' || !this.specialChoices.includes(id)) return false;
+      if (this.workshop) {
+        this.parts[id]++;
+        if (id === 'cannon') this.damage += 2;
+        if (id === 'armor') { this.maxShield += 30; this.shield = this.maxShield; }
+        this.health = this.maxHealth;
+        this.workshop = false; this.workshopDue = false; this.state = 'playing';
+        this.checkProgress(); return true;
+      }
       this.perks[id]++;
       if (id === 'reactor') { this.maxShield += 20; this.shield = Math.min(this.maxShield, this.shield + 20); }
       this.sector++; this.sectorKills = 0; this.pendingSpecial = false;
@@ -135,7 +147,7 @@
       this.checkProgress(); return true;
     }
     spawnBoss() {
-      this.meteors = []; this.bullets = [];
+      this.meteors = []; this.bullets = []; this.rushWarning = null;
       // About 30 seconds to the bottom. HP is based on current theoretical DPS,
       // leaving a margin for travel time and movement; the fight is still lethal.
       const p = this.perks;
@@ -151,7 +163,7 @@
       if (!this.boss || this.boss.dead) return;
       this.boss.hp = Math.max(0, this.boss.hp - amount); this.boss.flash = .08;
       if (this.boss.hp === 0) {
-        this.boss.dead = true; this.kills++; this.pendingSpecial = true;
+        this.boss.dead = true; this.kills++; this.pendingSpecial = true; this.workshopDue = true;
         this.events.push({ type: 'explode', x: 180, y: this.boss.y + 60, size: 8, reward: true });
         this.shield = this.maxShield;
       }
@@ -181,12 +193,23 @@
       this.invulnerable = Math.max(0, this.invulnerable - dt);
       const px = this.player.x, py = this.player.y;
       const dx = this.target.x - px, dy = this.target.y - py;
-      const travel = Math.min(1, 640 * dt / (Math.hypot(dx, dy) || 1));
+      const travel = Math.min(1, (640 + this.parts.engine * 90) * dt / (Math.hypot(dx, dy) || 1));
       this.player.x += dx * travel; this.player.y += dy * travel;
       this.fireClock -= dt;
       if (this.fireClock <= 0) {
         this.fire();
         this.fireClock += this.fireInterval;
+      }
+      if (!this.boss && this.sectorKills < this.sectorGoal) {
+        this.rushClock -= dt;
+        if (!this.rushWarning && this.rushClock <= 0) this.rushWarning = { x: this.player.x, time: .85 };
+        if (this.rushWarning) {
+          this.rushWarning.time -= dt;
+          if (this.rushWarning.time <= 0) {
+            const m = this.spawn(); Object.assign(m, { x: this.rushWarning.x, radius: 16, size: 1, hp: 3 + this.sector, maxHp: 3 + this.sector, speed: 420 + Math.min(180, this.sector * 12), drift: 0, rush: true });
+            this.rushWarning = null; this.rushClock = 12 + this.random() * 10;
+          }
+        }
       }
       this.spawnClock -= dt;
       if (this.spawnClock <= 0 && !this.boss && this.sectorKills < this.sectorGoal) {
@@ -240,7 +263,7 @@
         if (this.aegisActive && !m.dead && Math.hypot(m.x - this.player.x, m.y - this.player.y) <= m.radius + 40) { this.destroy(m); continue; }
         if (!m.dead && hit(m.oldX - px, m.oldY - py,
           m.x - this.player.x, m.y - this.player.y, this.player.radius + m.radius * 0.8)) {
-          if (this.hurt([0, 18, 28, 40][m.size])) this.destroy(m, false);
+          if (this.hurt(m.size === 1 && this.shield === 0 ? 7 : [0, 18, 28, 40][m.size])) this.destroy(m, false);
           if (this.state === 'over') break;
         }
       }

@@ -56,6 +56,7 @@ const root = path.join(__dirname, '../app/src/main/assets');
   await page.evaluate(()=>{__game.boss.y=200;__game.boss.hp=1;__game.bullets.push({x:180,y:300,damage:2});});
   await page.locator('#special-panel').waitFor({state:'visible'});
   await page.locator('[data-special]').first().click();
+  await page.locator('[data-special]').first().click();
   assert.equal(await page.evaluate(()=>__game.sector),9);
   await page.evaluate(()=>{const g=__game;g.invulnerable=0;g.perks.aegis=0;g.shield=0;g.health=1;const m=g.spawn();Object.assign(m,{x:g.player.x,y:g.player.y,speed:0,drift:0,hp:99,maxHp:99,size:3});});
   await page.locator('#title').filter({hasText:'GAME OVER'}).waitFor();

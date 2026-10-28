@@ -67,11 +67,11 @@
     }
   }
   const themes = [
-    { name: 'CINTURÓN DE HIERRO', glow: '#0c1e4a', base: '#020615', tint: [1, 1, 1], rock: '#65665b' },
+    { name: 'ROCA', glow: '#0c1e4a', base: '#020615', tint: [1, 1, 1], rock: '#65665b' },
     { name: 'BRASAS', glow: '#4b231f', base: '#160c12', tint: [1.45, .65, .48], rock: '#99513f' },
     { name: 'GLACIAR', glow: '#183d59', base: '#060e1b', tint: [.65, 1.18, 1.65], rock: '#527b99' },
     { name: 'ESPORAS', glow: '#24442b', base: '#07130f', tint: [.8, 1.4, .65], rock: '#608742' },
-    { name: 'NEBULOSA', glow: '#422354', base: '#10091c', tint: [1.22, .72, 1.65], rock: '#85569a' },
+    { name: 'HIERRO', glow: '#422354', base: '#10091c', tint: [1.22, .72, 1.65], rock: '#85569a' },
     { name: 'ARENAS SOLARES', glow: '#4a391e', base: '#151006', tint: [1.55, 1.2, .5], rock: '#9a813c' }
   ];
   const themedRocks = themes.map((theme, ti) => rocks.map(variants => variants.map(sprite => {
@@ -87,6 +87,19 @@
       for (const [x, y] of [[8, 5], [24, 11], [6, 21]]) {
         c.fillRect(x, y, ti % 2 ? 2 : 3, 2); c.fillRect(x + 1, y - 2, 1, 2);
       }
+    }
+    // Distinct silhouettes and materials, not just recolored crater textures.
+    if (ti === 1) { // Magma plates and glowing lava seams.
+      c.strokeStyle='#ffb533'; c.lineWidth=2; c.beginPath(); c.moveTo(12,3); c.lineTo(15,12); c.lineTo(8,19); c.lineTo(18,27); c.moveTo(15,12); c.lineTo(26,14); c.stroke();
+    } else if (ti === 2) { // Faceted ice outgrowths.
+      for (const [x,y] of [[7,8],[21,5],[24,21]]) { c.fillStyle='#3b92e5'; c.beginPath();c.moveTo(x-5,y+7);c.lineTo(x,y-6);c.lineTo(x+6,y+3);c.closePath();c.fill();c.fillStyle='#beffff';c.fillRect(x,y-5,2,10); }
+    } else if (ti === 3) { // Organic purple core with green spore sacs.
+      c.globalCompositeOperation='source-atop';c.fillStyle='#57265c88';c.fillRect(0,0,32,32);c.globalCompositeOperation='source-over';
+      for (const [x,y] of [[6,9],[22,6],[25,22],[10,25]]) {c.fillStyle='#2c542c';c.fillRect(x-3,y-3,7,7);c.fillStyle='#88ce45';c.fillRect(x-2,y-2,5,5);c.fillStyle='#e6ff9a';c.fillRect(x-1,y-2,2,2);}
+    } else if (ti === 4) { // Iron armor: riveted metal plates.
+      for (const [x,y] of [[5,6],[17,7],[10,19]]) {c.fillStyle='#555d8b';c.fillRect(x,y,10,8);c.fillStyle='#b6cdf2';c.fillRect(x,y,10,2);c.fillStyle='#18243f';c.fillRect(x+2,y+4,2,2);}
+    } else if (ti === 5) { // Solar sandstone: layered slabs and golden shards.
+      for(let y=7;y<27;y+=5){c.fillStyle=y%2?'#ecb95d':'#73512f';c.fillRect(8,y,16,2);}c.fillStyle='#ffe48a';c.fillRect(5,13,4,8);c.fillRect(23,9,3,7);
     }
     return canvas;
   })));
