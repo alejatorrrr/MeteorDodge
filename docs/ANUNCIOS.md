@@ -26,7 +26,7 @@ Las pruebas de navegador simulan respuestas del puente nativo para comprobar can
 
 ## Compilación de producción
 
-Propiedades Gradle: `ADMOB_APP_ID`, `ADMOB_REVIVE_ID`, `ADMOB_EXTRA_ID`. `preReleaseBuild` rechaza identificadores vacíos, de muestra o con formato incorrecto. La firma de lanzamiento se configura aparte; no se guardan claves privadas en GitHub. El workflow compila y revisa también release sin firmar para validar la configuración real. Distribuye exclusivamente el APK debug con publicidad de prueba.
+Propiedades Gradle: `ADMOB_APP_ID`, `ADMOB_REVIVE_ID`, `ADMOB_EXTRA_ID`. `preReleaseBuild` rechaza identificadores vacíos, de muestra o con formato incorrecto. La firma de lanzamiento se configura aparte; no se guardan claves privadas en GitHub. El workflow compila y revisa también release sin firmar para validar la configuración real. Exporta el APK debug con publicidad de prueba y un paquete release sin firmar que incluye APK y AAB. La firma se aplica aparte con la clave privada conservada fuera del repositorio.
 
 Los tres IDs reales ya están configurados en `gradle.properties`: aplicación terminada en `3844298589`, Revivir en `8939858961` y Ventaja extra en `5279815558`.
 
@@ -37,3 +37,9 @@ Quedan la configuración de la cuenta/mensajes/política de privacidad y la firm
 - https://developers.google.com/admob/android/quick-start
 - https://developers.google.com/admob/android/rewarded
 - https://developers.google.com/admob/android/privacy
+
+## Distribución 1.12
+
+El menú, la pausa y el final de partida incluyen una política completa que se puede leer sin conexión. `PRIVACY.md` es la fuente; `python3 tools/build_privacy.py` genera el texto empaquetado y CI comprueba que coincide.
+
+El workflow ejecuta `bundleRelease` para generar el Android App Bundle de Google Play. El AAB debe firmarse con `jarsigner` y la clave privada existente; el APK usa `apksigner`. No subir claves ni contraseñas al repositorio. Google Play verifica por separado las declaraciones, la configuración de Play App Signing y los requisitos de publicación vigentes.

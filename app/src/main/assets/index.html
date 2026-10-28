@@ -10,6 +10,7 @@
   <script src="engine.js" defer></script>
   <script src="sprites.js" defer></script>
   <script src="icons.js" defer></script>
+  <script src="privacy.js" defer></script>
   <script src="game.js" defer></script>
 </head>
 <body>
@@ -42,6 +43,7 @@
         <button id="abandon" class="secondary" hidden>ABANDONAR PARTIDA</button>
         <button id="main-menu" class="secondary" hidden>MENÚ PRINCIPAL</button>
         <button id="fleet-toggle" class="secondary">NAVES · HANGAR</button>
+        <button id="privacy-policy" class="secondary">POLÍTICA DE PRIVACIDAD</button>
         <button id="ad-privacy" class="secondary" hidden>PRIVACIDAD DE ANUNCIOS</button>
         <section id="fleet" hidden><div class="fleet-banner" aria-hidden="true"></div><h2>ELIGE TU NAVE</h2><p>Desbloqueos permanentes por puntuación en una partida.</p><div id="ship-options"></div></section>
         <p class="hint" id="hint">Partidas sin conexión · Anuncios opcionales</p>
@@ -74,5 +76,10 @@
     <button id="burst" hidden>SUPERRÁFAGA</button>
     <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>
   </main>
+  <dialog id="privacy-dialog" aria-labelledby="privacy-title">
+    <h2 id="privacy-title">Política de privacidad</h2>
+    <div id="privacy-text" tabindex="0"></div>
+    <button id="privacy-close" class="secondary" autofocus>VOLVER AL JUEGO</button>
+  </dialog>
 </body>
 </html>

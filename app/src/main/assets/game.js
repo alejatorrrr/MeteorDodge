@@ -46,6 +46,12 @@
   }
   $('revive-ad').addEventListener('click',()=>requestReward('revive'));
   $('extra-ad').addEventListener('click',()=>requestReward('extra'));
+  const privacyDialog=$('privacy-dialog');
+  $('privacy-text').textContent=window.MeteorPrivacy;
+  $('privacy-policy').addEventListener('click',()=>{
+    privacyDialog.showModal(); $('privacy-text').scrollTop=0;
+  });
+  $('privacy-close').addEventListener('click',()=>privacyDialog.close());
   $('ad-privacy').addEventListener('click',()=>{if(window.MeteorAds)window.MeteorAds.privacy();});
   window.addEventListener('meteor-ad-result',e=>{
     if(!adRequest || e.detail.id!==adRequest.id)return;
@@ -238,7 +244,7 @@
   $('pause').addEventListener('click', pause);
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
   window.addEventListener('blur', pause);
-  window.addEventListener('app-pause', pause);
+  window.addEventListener('app-pause', () => { if(privacyDialog.open) privacyDialog.close(); pause(); });
   window.addEventListener('resize', resize);
 
   function position(event) {
@@ -263,6 +269,7 @@
     canvas.addEventListener(type, e => { if (e.pointerId === pointer) release(); });
   }
   window.addEventListener('keydown', e => {
+    if(privacyDialog.open) return;
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) e.preventDefault();
     if (e.key === 'Escape' || e.key === ' ') { pause(); return; }
     keys.add(e.key.toLowerCase());

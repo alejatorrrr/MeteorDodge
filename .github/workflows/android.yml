@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check bundled privacy policy
+        run: python3 tools/build_privacy.py --check
       - name: Test game mechanics
         run: node --test tests/*.test.cjs
       - name: Install browser test tools
@@ -53,7 +55,7 @@ jobs:
       - name: Build and lint debug APK
         run: gradle --no-daemon --stacktrace :app:assembleDebug :app:lintDebug
       - name: Validate production AdMob build (unsigned)
-        run: gradle --no-daemon --stacktrace :app:assembleRelease :app:lintRelease
+        run: gradle --no-daemon --stacktrace :app:assembleRelease :app:bundleRelease :app:lintRelease
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
@@ -65,6 +67,7 @@ jobs:
         run: |
           mkdir -p distribution
           "$ANDROID_HOME/build-tools/35.0.0/zipalign" -P 16 -f 4 app/build/outputs/apk/release/app-release-unsigned.apk distribution/MeteorDodge-unsigned.apk
+          cp app/build/outputs/bundle/release/app-release.aab distribution/MeteorDodge-unsigned.aab
           cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" distribution/apksigner.jar
       - name: Upload unsigned distribution
         uses: actions/upload-artifact@v4
