@@ -26,9 +26,11 @@ Las pruebas de navegador simulan respuestas del puente nativo para comprobar can
 
 ## Compilación de producción
 
-Propiedades Gradle: `ADMOB_APP_ID`, `ADMOB_REVIVE_ID`, `ADMOB_EXTRA_ID`. `preReleaseBuild` rechaza identificadores vacíos, de muestra o con formato incorrecto. La firma de lanzamiento se configura aparte; no se guardan claves privadas en GitHub. El workflow actual distribuye exclusivamente debug con publicidad de prueba.
+Propiedades Gradle: `ADMOB_APP_ID`, `ADMOB_REVIVE_ID`, `ADMOB_EXTRA_ID`. `preReleaseBuild` rechaza identificadores vacíos, de muestra o con formato incorrecto. La firma de lanzamiento se configura aparte; no se guardan claves privadas en GitHub. El workflow compila y revisa también release sin firmar para validar la configuración real. Distribuye exclusivamente el APK debug con publicidad de prueba.
 
-Faltan los IDs reales, la configuración de la cuenta/mensajes/política de privacidad y la firma de distribución para activar la monetización de una versión publicada. La integración por sí sola no garantiza ingresos ni disponibilidad de anuncios.
+Los tres IDs reales ya están configurados en `gradle.properties`: aplicación terminada en `3844298589`, Revivir en `8939858961` y Ventaja extra en `5279815558`.
+
+Quedan la configuración de la cuenta/mensajes/política de privacidad y la firma de distribución para activar la monetización de una versión publicada. La integración por sí sola no garantiza ingresos ni disponibilidad de anuncios.
 
 ## Documentación oficial
 
