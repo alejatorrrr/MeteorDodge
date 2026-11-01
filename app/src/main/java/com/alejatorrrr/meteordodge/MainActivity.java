@@ -47,6 +47,7 @@ public final class MainActivity extends Activity {
                     String mime = file.endsWith(".js") ? "application/javascript"
                             : file.endsWith(".css") ? "text/css"
                             : file.endsWith(".ttf") ? "font/ttf"
+                            : file.endsWith(".png") ? "image/png"
                             : file.endsWith(".jpg") ? "image/jpeg" : "text/html";
                     try {
                         return new WebResourceResponse(mime, "UTF-8", getAssets().open(file));
