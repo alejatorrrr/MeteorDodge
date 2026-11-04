@@ -197,3 +197,12 @@ p { font-size: 10px; } .hint { font-size: 7px; } .eyebrow { font-size: 8px; }
 #studio-intro img { flex: none; width: min(180vw, 1100px); height: 90vh; object-fit: contain; max-width: none; }
 #studio-intro.is-leaving { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { #studio-intro { transition-duration: 0ms; } }
+
+#hud > div:first-child { position: relative; }
+#next-ship { position: absolute; bottom: calc(100% + 7px); left: 9px; width: 170px; font-size: 6px; line-height: 1.7; color: #b8c6dd; text-shadow: 0 2px #020615; }
+#record-flash, #resume-countdown { position: absolute; left: 0; right: 0; top: 45%; z-index: 30; text-align: center; pointer-events: none; font-size: clamp(15px, 5vw, 25px); color: #ffdf81; text-shadow: 0 2px #613d21; }
+#record-flash { opacity: 0; }
+#record-flash.flash { animation: record-pop 500ms ease-out both; }
+#resume-countdown { font-size: 48px; color: #bffaff; }
+@keyframes record-pop { 0%, 60% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.4); } }
+@media(prefers-reduced-motion: reduce) { @keyframes record-pop { 0%, 60% { opacity: 1; } 100% { opacity: 0; } } }

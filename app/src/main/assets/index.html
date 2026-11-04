@@ -21,7 +21,7 @@
   <main id="stage" aria-label="Meteor Dodge: juego de esquivar meteoritos">
     <canvas id="game" aria-label="Arrastra el dedo para mover la nave"></canvas>
     <div id="hud">
-      <div><span class="label">PUNTOS</span><strong id="score">0000</strong></div>
+      <div><small id="next-ship"></small><span class="label">PUNTOS</span><strong id="score">0000</strong></div>
       <div class="record"><span class="label">RÉCORD</span><strong id="best">0000</strong></div>
       <button id="pause" class="icon-button" aria-label="Pausar partida" hidden>Ⅱ</button>
     </div>
@@ -78,6 +78,8 @@
     <div id="ad-status" role="status" aria-live="polite" hidden></div>
     <div id="ad-wait" role="dialog" aria-modal="true" hidden><p>ABRIENDO ANUNCIO…</p></div>
     <button id="burst" hidden>SUPERRÁFAGA</button>
+    <div id="record-flash" aria-hidden="true"></div>
+    <div id="resume-countdown" hidden aria-hidden="true"></div>
     <div id="touch-hint" aria-hidden="true">DESLIZA PARA MOVER LA NAVE</div>
   </main>
   <dialog id="privacy-dialog" aria-labelledby="privacy-title">

@@ -7,6 +7,7 @@
   let best = 0, storageAvailable = true;
   try { best = Math.max(0, Math.floor(Number(localStorage.getItem('meteor-dodge-best')) || 0)); }
   catch (_) { storageAvailable = false; }
+  let recordShown = false, runRecord = false, resumeTimer = null;
   let selectedShip='classic', unlockBest=best;
   try { unlockBest=Math.max(best,Number(localStorage.getItem('meteor-unlock-best'))||0); selectedShip=localStorage.getItem('meteor-ship')||'classic'; } catch (_) {}
   if(!MeteorEngine.SHIPS.some(s=>s.id===selectedShip && s.score<=unlockBest)) selectedShip='classic';
@@ -84,6 +85,22 @@
     if (game.state === 'playing') pause();
   }
   function hud() {
+    if (game.score > best) {
+      best = game.score;
+      runRecord = true;
+      try { localStorage.setItem('meteor-dodge-best', String(best)); } catch (_) { storageAvailable = false; }
+      if (!recordShown) {
+        recordShown = true;
+        const flash = $('record-flash');
+        flash.textContent = '¡NUEVO RÉCORD!';
+        flash.classList.remove('flash');
+        void flash.offsetWidth;
+        flash.classList.add('flash');
+      }
+    }
+    const nextShip = MeteorEngine.SHIPS.find(ship => ship.score > Math.max(unlockBest, game.score));
+    $('next-ship').textContent = nextShip ? 'SIGUIENTE NAVE: ' + Math.max(0, nextShip.score - game.score) + ' PTS' : 'FLOTA COMPLETA';
+
     $('stage').dataset.screen = game.state;
     $('revive-ad').hidden=!adNative() || game.state!=='over' || game.revived;
     $('extra-ad').hidden=!adNative() || !game.canRewardExtra();
@@ -115,6 +132,7 @@
   }
   function release() { pointer = null; lastPointer = null; keys.clear(); }
   function pause() {
+    if (resumeTimer !== null) { clearTimeout(resumeTimer); resumeTimer = null; $('resume-countdown').hidden = true; game.resume(); } 
     if (game.state !== 'playing') return;
     game.pause(); release();
     $('eyebrow').textContent = 'TÓMATE UN RESPIRO';
@@ -129,7 +147,7 @@
     $('pause').hidden = true;
   }
   function end() {
-    const newRecord = game.score > best;
+    const newRecord = runRecord || game.score > best;
     best = Math.max(best, game.score);
     try { localStorage.setItem('meteor-dodge-best', String(best)); }
     catch (_) { storageAvailable = false; }
@@ -234,7 +252,26 @@
     $('fleet').hidden = true;
     $('abandon').hidden=true;
     $('main-menu').hidden = true;
-    if (game.state === 'paused') game.resume(); else game.start(selectedShip);
+    if (resumeTimer !== null) return;
+    if (game.state === 'paused') {
+      const countdown = $('resume-countdown');
+      let number = 3;
+      countdown.textContent = number;
+      countdown.hidden = false;
+      $('panel').hidden = true;
+      const tick = () => {
+        if (--number > 0) { countdown.textContent = number; resumeTimer = setTimeout(tick, 200); }
+        else {
+          resumeTimer = null; countdown.hidden = true;
+          game.resume(); previousState = 'playing'; lastTime = 0;
+          $('pause').hidden = false; hud();
+        }
+      };
+      resumeTimer = setTimeout(tick, 200);
+      return;
+    }
+    recordShown = false; runRecord = false;
+    game.start(selectedShip);
     previousState = 'playing'; lastTime = 0; particles = []; rings = []; hitFlash = 0; release();
     $('panel').hidden = true;
     $('special-panel').hidden = true; $('upgrade-panel').hidden = true;
